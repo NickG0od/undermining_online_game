@@ -1,0 +1,21 @@
+{
+  "name": "gastronomic-russian-map",
+  "version": "1.0.0",
+  "description": "Map of Russian Gastronomy",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app",
+    "dev": "nodemon app"
+  },
+  "keywords": [],
+  "author": "FreeQux",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-handlebars": "^4.0.4",
+    "mongoose": "^5.9.21"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}

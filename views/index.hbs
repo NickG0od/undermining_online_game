@@ -1,0 +1,46 @@
+<h3 style="margin-top: 1rem;">Гастрономическая карта</h3>
+
+<div id="map" style="width: 1000px; height: 500px; padding: 0; margin: 0;"></div>
+
+<h4 style="margin-top: 1rem;">Легенда:</h4>
+<img src="/Montazhnaya_oblast_13_2x.png" width="100%" height="100%" alt="">
+
+<script type="text/javascript">
+    ymaps.ready(init);
+
+    function init() {
+        let myMap = new ymaps.Map("map", {
+            center: [55.76, 37.64],
+            zoom: 7
+        }),
+
+        objectManager = new ymaps.ObjectManager({
+            clusterize: false,
+            gridSize: 32,
+            clusterDisableClickZoom: true
+        }),
+
+        myPlacemark = new ymaps.Placemark(myMap.getCenter(), {
+            hintContent: 'Собственный значок метки',
+            balloonContent: 'Это красивая метка'
+        }, {
+            iconLayout: 'default#image',
+            iconImageHref: '/icon_default.png',
+            iconImageSize: [24, 24],
+            iconImageOffset: [0, 0]
+        });
+
+        myMap.geoObjects
+            .add(myPlacemark);
+
+        //objectManager.objects.options.set('preset', 'islands#greenDotIcon');
+        objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
+        myMap.geoObjects.add(objectManager);
+
+        $.ajax({
+            url: "file.json"
+        }).done(function(data) {
+            objectManager.add(data);
+        });
+    }
+</script>
