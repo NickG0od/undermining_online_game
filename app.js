@@ -5,7 +5,7 @@ const exphbs = require('express-handlebars')
 
 const mapRoute = require('./routes/map')
 
-const PORT = process.env.PORT || 80
+const PORT = process.env.PORT || 3000
 const mongoDB = 'mongodb+srv://freequx:1f2r3e4e@cluster0.gwkxc.gcp.mongodb.net/products'
 
 

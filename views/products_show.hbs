@@ -18,7 +18,7 @@
                 <input type="checkbox" value="{{_id}}" name="checked">
                 <span>{{ title }}</span>
                 <span>{{ region }}</span>
-                <span>{{ cook_type }}</span>
+                <span>{{ description }}</span>
 
                 <button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_product_{{@index}}" data-toggle="modal" data-target="#editProductModal" value="{{_id}}">Изменить</button>
 
@@ -26,7 +26,6 @@
             </label>
         </li>
     {{/each}}
-
     <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
     <button type="reset" class="btn btn-outline-dark" id="delete_products">Удалить</button>
     </form>
@@ -50,18 +49,41 @@
             <div class="modal-body">
                 <form action="/product_create" method="POST" id="creatingProduct">
                     <div class="form-group">
-                        <label for="nameOfProduct">Название продукта</label>
-                        <input type="text" class="form-control" id="nameOfProduct" name="title">
+                        <label for="typeOfProduct">Тип</label>
+                        <select class="form-control" id="typeOfProduct" name="type">
+                            <option value="product">Продукт</option>
+                            <option value="dish">Блюдо</option>
+                        </select>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col">
+                            <label for="nameOfProduct">Название</label>
+                            <input type="text" class="form-control" id="nameOfProduct" name="title" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="iconProduct">ВИД</label>
+                            <div class="btn-group dropleft" id="iconProduct">
+                                <input type="hidden" value="" name="icon_path" id="iconPathProduct">
+                                <a class="btn btn-sm btn-outline-warning dropdown-toggle" id="dropdownIcons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="" alt="" id="showICON"/> 
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownIcons">
+                                    {{#each dataIcons}}
+                                    <a class="dropdown-item" id="{{ id }}"><img src="{{ path }}" alt=""/> {{ title }}</a>
+                                    {{/each}}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="regOfProduct">Субъект РФ</label>
                         <input type="text" class="form-control" id="regOfProduct" name="region" aria-describedby="regHelp">
-                        <small id="regHelp" class="form-text text-muted">Введите регион, в котором находится продукт.</small>
+                        <small id="regHelp" class="form-text text-muted"></small>
                     </div>
                     <div class="form-group">
-                        <label for="cookTypeOfProduct">Вид кухни</label>
-                        <input type="text" class="form-control" id="cookTypeOfProduct" name="cook_type" aria-describedby="cookTypeHelp">
-                        <small id="cookTypeHelp" class="form-text text-muted">Введите тип кухни, к которому относится продукт.</small>
+                        <label for="cookTypeOfProduct">Описание</label>
+                        <input type="text" class="form-control" id="cookTypeOfProduct" name="description" aria-describedby="cookTypeHelp">
+                        <small id="cookTypeHelp" class="form-text text-muted"></small>
                     </div>
                 </form>
             </div>
@@ -95,53 +117,73 @@
 <script src="/jquery-3.5.1.js"></script>
 <script type="text/javascript">
     var coords = [0, 0];
+    var firstGeoObject = "";
     ymaps.ready(init);
 
     function init() {
+        let myPlacemark;
         let myMap = new ymaps.Map("map", {
             center: [55.76, 37.64],
             zoom: 7
         });
 
         myMap.events.add('click', function (e) {
-            if (!myMap.balloon.isOpen()) {
-                coords = e.get('coords');
-                myMap.balloon.open(coords, {
-                    contentHeader:'Выбранная точка',
-                    contentBody:
-                        '<p>Координаты: ' + [
-                        coords[0].toPrecision(6),
-                        coords[1].toPrecision(6)
-                        ].join(', ') + '</p>',
-                    contentFooter:'<sup>Щелкните еще раз</sup>'
-                });
+            coords = e.get('coords');
+            if (myPlacemark) {
+                myPlacemark.geometry.setCoordinates(coords);
             }
             else {
-                coords = [0, 0];
-                myMap.balloon.close();
+                myPlacemark = createPlacemark(coords);
+                myMap.geoObjects.add(myPlacemark);
+                myPlacemark.events.add('dragend', function () {
+                    getAddress(myPlacemark.geometry.getCoordinates());
+                });
             }
+            getAddress(coords);
         });
+
+        function createPlacemark(coords) {
+            return new ymaps.Placemark(coords, {
+                iconCaption: 'поиск...'
+            }, {
+                preset: 'islands#violetDotIconWithCaption',
+                draggable: true
+            });
+        }
+
+        function getAddress(coords) {
+            myPlacemark.properties.set('iconCaption', 'поиск...');
+            ymaps.geocode(coords).then(function (res) {
+                firstGeoObject = res.geoObjects.get(0);
+                myPlacemark.properties.set({
+                    iconCaption: "Точка выбрана.",
+                    balloonContent: firstGeoObject.getAddressLine()
+                });
+            });
+        }
     }
 </script>
 <script>
     const buttonDeleteProduct = document.getElementById('delete_products');
-    buttonDeleteProduct.addEventListener('click', async function(e) {
-        let data = $('#showing_products').serialize();
-        try {
-            const response = await fetch('/product_delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: data
-            });
-            const status = await response.ok;
-            window.location.reload(false);
-            return;
-        } catch (error) {
-            console.error('error: ', error);
-        }
-    });
+    if (typeof(buttonDeleteProduct) != 'undefined' && buttonDeleteProduct != null) {
+        buttonDeleteProduct.addEventListener('click', async function(e) {
+            let data = $('#showing_products').serialize();
+            try {
+                const response = await fetch('/product_delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: data
+                });
+                const status = await response.ok;
+                window.location.reload(false);
+                return;
+            } catch (error) {
+                console.error('error: ', error);
+            }
+        });
+    }
 
     let idToEdit = "";
     const buttonsEditProduct = document.getElementsByClassName('btn-edit-product');
@@ -151,9 +193,18 @@
         });
     }
     $('#saveCoords').click(async function() {
+
+        let region = "";
+        if (firstGeoObject != "") {
+            const arrayOfStrings = firstGeoObject.getAddressLine().split(", ");
+            if (arrayOfStrings.length > 1) {region += arrayOfStrings[0] + ", " + arrayOfStrings[1];}
+            else {region = arrayOfStrings[0];}
+        }
+
         data = {
             id: idToEdit,
-            coordinates: coords
+            coordinates: coords,
+            region: region
         }
         try {
             const response = await fetch('/product_edit', {
@@ -169,5 +220,38 @@
         } catch (error) {
             console.error('error: ', error);
         }
+    });
+
+    $( document ).ready(function() {
+        if ($('#typeOfProduct').val() == "product") {
+            $('#regHelp').text("Введите регион, в котором находится продукт.");
+            $('#cookTypeHelp').text("Введите тип кухни, к которому относится продукт.");
+        } else {
+            $('#regHelp').text("Введите регион, в котором находится блюдо.");
+            $('#cookTypeHelp').text("Введите тип кухни, к которому относится блюдо.");
+        }
+        $('#typeOfProduct').change(function() {
+            if ($('#typeOfProduct').val() == "product") {
+                $('#regHelp').text("Введите регион, в котором находится продукт.");
+                $('#cookTypeHelp').text("Введите тип кухни, к которому относится продукт.");
+            } else {
+                $('#regHelp').text("Введите регион, в котором находится блюдо.");
+                $('#cookTypeHelp').text("Введите тип кухни, к которому относится блюдо.");
+            }
+        });
+
+        $('#showICON').attr("src", $('#classOfProduct').val());
+        $('#classOfProduct').change(function() {
+            $('#showICON').attr("src", $('#classOfProduct').val());
+        });
+        let path = $('.dropdown-menu a:first-child').find('img').attr("src");
+        $('#showICON').attr("src", path);
+        $('#iconPathProduct').val(path);
+        $('.dropdown-menu a').click(function() {
+            let title = $(this).text();
+            let value = $(this).find('img').attr("src");
+            $('#iconPathProduct').val(value);
+            $('#showICON').attr("src", value);
+        });
     });
 </script>
