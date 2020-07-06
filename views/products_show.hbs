@@ -1,4 +1,4 @@
-<h4 style="margin-top: 1rem;">Список всех продуктов(ингредиенты, блюда...)</h4>
+<h4 style="margin: 1rem;">Список всех продуктов(ингредиенты, блюда...)</h4>
 
 {{#if products.length}}
 <ul>
@@ -7,7 +7,7 @@
             <span>Выбрано</span>
             <span>Название</span>
             <span>Субъект РФ</span>
-            <span>Вид кухни</span>
+            <span>Описание</span>
             <span></span>
         </label>
     </li>
@@ -41,7 +41,7 @@
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="createProductModalLabel">Создание продукта</h5>
+                <h5 class="modal-title" id="createProductModalLabel">Создание продукта/блюда</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -99,22 +99,36 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editProductModalLabel">Укажите точку:</h5>
+                <h5 class="modal-title" id="editProductModalLabel">Редактирование продукта/блюда</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div id="map" style="width: 700px; height: 400px; padding: 0; margin: 0;"></div>
+                <div class="form-group">
+                    <label for="map">Местоположение</label>
+                    <div id="map" style="width: 700px; height: 400px; padding: 0; margin: 0;" aria-describedby="coordHelp"></div>
+                    <small id="coordHelp" class="form-text text-muted">По умолчанию позиция = [0, 0].</small>
+                </div>
+                <div>
+                    <label for="nameOfProductEdit">Название</label>
+                    <input type="text" class="form-control" id="nameOfProductEdit" aria-describedby="editNameHelp">
+                    <small id="editNameHelp" class="form-text text-muted">Оставьте поле пустым, если хотите оставить прежнее название.</small>
+                </div>
+                <div class="form-group">
+                    <label for="descriptionEdit">Описание</label>
+                    <input type="text" class="form-control" id="descriptionEdit" aria-describedby="editDescriptionHelp">
+                    <small id="editDescriptionHelp" class="form-text text-muted">Оставьте поле пустым, если хотите оставить прежнее описание.</small>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="saveCoords">Сохранить</button>
+                <button type="button" class="btn btn-primary" id="saveEditedInfo">Сохранить</button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="/jquery-3.5.1.js"></script>
+<script src="/js/jquery-3.5.1.js"></script>
 <script type="text/javascript">
     var coords = [0, 0];
     var firstGeoObject = "";
@@ -192,8 +206,7 @@
             idToEdit = $(this).prop('value');
         });
     }
-    $('#saveCoords').click(async function() {
-
+    $('#saveEditedInfo').click(async function() {
         let region = "";
         if (firstGeoObject != "") {
             const arrayOfStrings = firstGeoObject.getAddressLine().split(", ");
@@ -201,10 +214,18 @@
             else {region = arrayOfStrings[0];}
         }
 
+        let title = $('#nameOfProductEdit').val();
+        let description = $('#descriptionEdit').val();
+
+        if (title === undefined) {title = "";}
+        if (description === undefined) {description = "";}
+
         data = {
             id: idToEdit,
             coordinates: coords,
-            region: region
+            region: region,
+            title: title,
+            description: description
         }
         try {
             const response = await fetch('/product_edit', {
@@ -222,7 +243,7 @@
         }
     });
 
-    $( document ).ready(function() {
+    $(document).ready(function() {
         if ($('#typeOfProduct').val() == "product") {
             $('#regHelp').text("Введите регион, в котором находится продукт.");
             $('#cookTypeHelp').text("Введите тип кухни, к которому относится продукт.");
@@ -241,9 +262,11 @@
         });
 
         $('#showICON').attr("src", $('#classOfProduct').val());
+
         $('#classOfProduct').change(function() {
             $('#showICON').attr("src", $('#classOfProduct').val());
         });
+
         let path = $('.dropdown-menu a:first-child').find('img').attr("src");
         $('#showICON').attr("src", path);
         $('#iconPathProduct').val(path);

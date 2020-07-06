@@ -11,11 +11,67 @@ const utils = require('../utils')
 router.get('/', async (req, res) => {
     const products = await Product.find({}).lean()
 
-    let dataMap = {
+    let dataMapProducts = {
         type: "FeatureCollection",
         features: []
     }
+    let dataMapDishes = {
+        type: "FeatureCollection",
+        features: []
+    }
+    let dataMapAll = {
+        type: "FeatureCollection",
+        features: []
+    }
+
     for (let i=0; i<products.length; i++) {
+        if (products[i].type == "product") {
+            let elemMap = {
+                type: "Feature",
+                id: i,
+                geometry: {
+                    type: "Point",
+                    coordinates: products[i].coordinates,
+                },
+                options: {
+                    iconLayout: "default#image",
+                    iconImageHref: `${products[i].icon_path}`,
+                    iconImageSize: [24, 24],
+                    iconImageOffset: [0, 0]
+                },
+                properties: {
+                    balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].type}</p>`,
+                    balloonContentFooter: `<p>Регион продукта: ${products[i].region}</p>`,
+                    clusterCaption: `<p>Я - ${products[i].title}</p>`,
+                    hintContent: `<strong>Это - ${products[i].title}</strong>`              
+                }
+            }
+            dataMapProducts.features.push(elemMap)
+        }
+        if (products[i].type == "dish") {
+            let elemMap = {
+                type: "Feature",
+                id: i,
+                geometry: {
+                    type: "Point",
+                    coordinates: products[i].coordinates,
+                },
+                options: {
+                    iconLayout: "default#image",
+                    iconImageHref: `${products[i].icon_path}`,
+                    iconImageSize: [24, 24],
+                    iconImageOffset: [0, 0]
+                },
+                properties: {
+                    balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].type}</p>`,
+                    balloonContentFooter: `<p>Регион продукта: ${products[i].region}</p>`,
+                    clusterCaption: `<p>Я - ${products[i].title}</p>`,
+                    hintContent: `<strong>Это - ${products[i].title}</strong>`              
+                }
+            }
+            dataMapDishes.features.push(elemMap)
+        }
+
         let elemMap = {
             type: "Feature",
             id: i,
@@ -36,12 +92,20 @@ router.get('/', async (req, res) => {
                 hintContent: `<strong>Это - ${products[i].title}</strong>`              
             }
         }
-        dataMap.features.push(elemMap)
+        dataMapAll.features.push(elemMap)
     }
 
     try {
-        let wStream = fs.createWriteStream("public/dataMap.json")
-        wStream.write(JSON.stringify(dataMap) + "\r\n")
+        let wStream = fs.createWriteStream("public/data/dataMapProducts.json")
+        wStream.write(JSON.stringify(dataMapProducts) + "\r\n")
+        wStream.end()
+
+        wStream = fs.createWriteStream("public/data/dataMapDishes.json")
+        wStream.write(JSON.stringify(dataMapDishes) + "\r\n")
+        wStream.end()
+
+        wStream = fs.createWriteStream("public/data/dataMapAll.json")
+        wStream.write(JSON.stringify(dataMapAll) + "\r\n")
         wStream.end()
     } catch (err) {
         console.log(err.message)
@@ -59,7 +123,7 @@ router.get('/products_show', async (req, res) => {
     const GetDataIcons = () => {
         return new Promise((resolve, reject) => {
             let fetchedData = {}
-            fs.createReadStream("public/dataIcons.json")
+            fs.createReadStream("public/data/dataIcons.json")
                 .pipe(JSONStream.parse('*'))
                 .on('data', (data) => {
                     fetchedData = data
@@ -68,7 +132,7 @@ router.get('/products_show', async (req, res) => {
                     }
                     resolve(fetchedData)
                 })
-                .on('error', reject); 
+                .on('error', reject)
         })
     }
     const dataIcons = await GetDataIcons()
@@ -100,17 +164,27 @@ router.post('/product_delete', async (req, res) => {
 
     for (const id of checkers) {
         try {
-            await Product.deleteOne({ _id : new mongo.ObjectID(id)});
-        } catch (e) {console.log(e);}
+            await Product.deleteOne({ _id : new mongo.ObjectID(id)})
+        } catch (e) {console.log(e)}
     }
     res.redirect('/products_show')
 })
 
 router.post('/product_edit', async (req, res) => {
-    const newvalues = { $set: {coordinates: req.body['coordinates'], region: req.body['region']} };
+    let newValues = {}
+    if (req.body['title'] != "" && req.body['description'] != "") {
+        newValues = { $set: {coordinates: req.body['coordinates'], region: req.body['region'], title: req.body['title'], description: req.body['description']} }
+    } else if (req.body['title'] != "" && req.body['description'] == "") {
+        newValues = { $set: {coordinates: req.body['coordinates'], region: req.body['region'], title: req.body['title']} }
+    } else if (req.body['title'] == "" && req.body['description'] != "") {
+        newValues = { $set: {coordinates: req.body['coordinates'], region: req.body['region'], description: req.body['description']} }
+    } else if (req.body['title'] == "" && req.body['description'] == "") {
+        newValues = { $set: {coordinates: req.body['coordinates'], region: req.body['region']} }
+    }
+    
     try {
-        await Product.updateOne({ _id : new mongo.ObjectID(req.body['id'])}, newvalues);
-    } catch (e) {console.log(e);}
+        await Product.updateOne({ _id : new mongo.ObjectID(req.body['id'])}, newValues)
+    } catch (e) {console.log(e)}
 
     res.redirect('/products_show')
 })

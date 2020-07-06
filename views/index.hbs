@@ -1,14 +1,29 @@
-<h3 style="margin-top: 1rem;">Гастрономическая карта</h3>
+<h3 style="margin: 1rem;">Гастрономическая карта</h3>
 
-<div id="map" style="width:1000px; height: 500px; padding: 0; margin: 0;"></div>
+<div class="btn-toolbar justify-content-between mb-2 mt-2" role="toolbar" aria-label="Map's type">
+    <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary" id="productType">Продукты</button>
+        <button type="button" class="btn btn-outline-primary" id="dishType">Блюда</button>
+    </div>
+    <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary" id="allType">Вся карта</button>
+  </div>
+</div>
 
-<h4 style="margin-top: 1rem;">Легенда:</h4>
+<div class="container">
+    <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
+</div>
 
+<h3 style="margin-top: 1rem;">Подробнее</h3>
+
+<script src="/js/jquery-3.5.1.js"></script>
 <script type="text/javascript">
-    ymaps.ready(init);
+    let myMap = null;
+    function startYandex(url) {
+        ymaps.ready(init);
 
-    function init() {
-        let myMap = new ymaps.Map("map", {
+        function init() {
+        myMap = new ymaps.Map("map", {
             center: [55.76, 37.64],
             zoom: 7
         }),
@@ -24,9 +39,31 @@
         myMap.geoObjects.add(objectManager);
 
         $.ajax({
-            url: "dataMap.json"
+            url: url
         }).done(function(data) {
             objectManager.add(data);
         });
     }
+    }
+</script>
+<script>
+$(document).ready(function() {
+    startYandex("/data/dataMapProducts.json");
+
+    $('#productType').click(function() {
+        if (myMap) {myMap.destroy();}
+        startYandex("/data/dataMapProducts.json");
+    });
+
+    $('#dishType').click(function() {
+        if (myMap) {myMap.destroy();}
+        startYandex("/data/dataMapDishes.json");
+    });
+
+    $('#allType').click(function() {
+        if (myMap) {myMap.destroy();}
+        startYandex("/data/dataMapAll.json");
+    });
+
+});
 </script>
