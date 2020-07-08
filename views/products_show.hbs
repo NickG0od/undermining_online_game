@@ -1,35 +1,38 @@
-<h4 style="margin: 1rem;">Список всех продуктов(ингредиенты, блюда...)</h4>
+<h4 style="margin: 1rem;">Список всех объектов (продуктов, блюд, дикоросов, рыб)</h4>
 
 {{#if products.length}}
-<ul>
-    <li class="product">
-        <label>
-            <span>Выбрано</span>
-            <span>Название</span>
-            <span>Субъект РФ</span>
-            <span>Описание</span>
-            <span></span>
-        </label>
-    </li>
-    <form action="/test_complete" method="POST" id="showing_products">
-    {{#each products}}
-        <li class="product">
-            <label>
-                <input type="checkbox" value="{{_id}}" name="checked">
-                <span>{{ title }}</span>
-                <span>{{ region }}</span>
-                <span>{{ description }}</span>
-
-                <button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_product_{{@index}}" data-toggle="modal" data-target="#editProductModal" value="{{_id}}">Изменить</button>
-
-                <input type="hidden" value="{{_id}}" name="id">
-            </label>
-        </li>
-    {{/each}}
-    <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
-    <button type="reset" class="btn btn-outline-dark" id="delete_products">Удалить</button>
-    </form>
-</ul>
+<form id="showing_products">
+<table class="table table-sm table-hover table-striped">
+    <thead>
+        <tr class="table-info">
+            <th scope="col">#</th>
+            <th scope="col">Название</th>
+            <th scope="col">Тип</th>
+            <th scope="col">Описание</th>
+            <th scope="col">Регион</th>
+            <th scope="col">Координаты</th>
+            <th scope="col">-</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each products}}
+        <tr>
+            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+            <td>{{ title }}</td>
+            <td>{{ typeRU }}</td>
+            <td>{{ description }}</td>
+            <td>{{ region }}</td>
+            <td>{{ coordinates }}</td>
+            <td><button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_product_{{@index}}" data-toggle="modal" data-target="#editProductModal" value="{{_id}}">Изменить</button></td>
+        
+            <input type="hidden" value="{{_id}}" name="id">
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+<button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
+<button type="reset" class="btn btn-outline-dark" id="delete_products">Удалить</button>
+</form>
 {{else}}
 <p>[ В БД нет продуктов ]</p>
 <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
@@ -46,13 +49,15 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form action="/product_create" method="POST" id="creatingProduct">
+            <div class="modal-body" id="modalBodyCreate">
+                <form action="/product_create" method="POST" id="creatingProduct" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="typeOfProduct">Тип</label>
                         <select class="form-control" id="typeOfProduct" name="type">
                             <option value="product">Продукт</option>
                             <option value="dish">Блюдо</option>
+                            <option value="wild_plant">Дикорос</option>
+                            <option value="fish">Рыба</option>
                         </select>
                     </div>
                     <div class="form-group row">
@@ -74,6 +79,10 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageUpload">Загрузите фото объекта</label>
+                        <input type="file" class="form-control-file" id="imageUpload" name="image">
                     </div>
                     <div class="form-group">
                         <label for="regOfProduct">Субъект РФ</label>
@@ -106,7 +115,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="map">Местоположение</label>
+                    <label for="map">Местоположение на карте</label>
                     <div id="map" style="width: 700px; height: 400px; padding: 0; margin: 0;" aria-describedby="coordHelp"></div>
                     <small id="coordHelp" class="form-text text-muted">По умолчанию позиция = [0, 0].</small>
                 </div>
@@ -128,6 +137,8 @@
     </div>
 </div>
 
+
+
 <script src="/js/jquery-3.5.1.js"></script>
 <script type="text/javascript">
     var coords = [0, 0];
@@ -137,12 +148,18 @@
     function init() {
         let myPlacemark;
         let myMap = new ymaps.Map("map", {
-            center: [55.76, 37.64],
-            zoom: 7
+            center: [55.755, 37.619],
+            zoom: 9
+        }, {
+            restrictMapArea: [
+                [85, -179],
+                [-65, 179]
+            ]
         });
 
         myMap.events.add('click', function (e) {
             coords = e.get('coords');
+            console.log(coords);
             if (myPlacemark) {
                 myPlacemark.geometry.setCoordinates(coords);
             }
@@ -178,27 +195,24 @@
     }
 </script>
 <script>
-    const buttonDeleteProduct = document.getElementById('delete_products');
-    if (typeof(buttonDeleteProduct) != 'undefined' && buttonDeleteProduct != null) {
-        buttonDeleteProduct.addEventListener('click', async function(e) {
-            let data = $('#showing_products').serialize();
-            try {
-                const response = await fetch('/product_delete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: data
-                });
-                const status = await response.ok;
-                window.location.reload(false);
-                return;
-            } catch (error) {
-                console.error('error: ', error);
-            }
-        });
-    }
-
+    $('#delete_products').click(async function() {
+        let data = $('#showing_products').serialize();
+        try {
+            const response = await fetch('/product_delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: data
+            });
+            const status = await response.ok;
+            window.location.reload(false);
+            return;
+        } catch (error) {
+            console.error('error: ', error);
+        }
+    });
+ 
     let idToEdit = "";
     const buttonsEditProduct = document.getElementsByClassName('btn-edit-product');
     for (let i=0; i<buttonsEditProduct.length; i++){
@@ -243,33 +257,40 @@
         }
     });
 
-    $(document).ready(function() {
-        if ($('#typeOfProduct').val() == "product") {
-            $('#regHelp').text("Введите регион, в котором находится продукт.");
-            $('#cookTypeHelp').text("Введите тип кухни, к которому относится продукт.");
-        } else {
-            $('#regHelp').text("Введите регион, в котором находится блюдо.");
-            $('#cookTypeHelp').text("Введите тип кухни, к которому относится блюдо.");
+
+    function setHelperText() {
+        let typeStr = "";
+        switch( $('#typeOfProduct').val() ) {
+            case "product":
+                typeStr = "продукт";
+                break;
+            case "dish":
+                typeStr = "блюдо";
+                break;
+            case "wild_plant":
+                typeStr = "дикорос";
+                break;
+            case "fish":
+                typeStr = "рыба";
+                break;
+            default:
+                break;
         }
-        $('#typeOfProduct').change(function() {
-            if ($('#typeOfProduct').val() == "product") {
-                $('#regHelp').text("Введите регион, в котором находится продукт.");
-                $('#cookTypeHelp').text("Введите тип кухни, к которому относится продукт.");
-            } else {
-                $('#regHelp').text("Введите регион, в котором находится блюдо.");
-                $('#cookTypeHelp').text("Введите тип кухни, к которому относится блюдо.");
-            }
+        $('#regHelp').text(`Введите регион, в котором находится ${typeStr}.`);
+        $('#cookTypeHelp').text(`Введите тип кухни, к которому относится ${typeStr}.`);
+    }
+
+    $(document).ready(function() {
+        $('#createProductModal').on('hide.bs.modal', function (e) {
+            console.log("aasas")
         });
 
-        $('#showICON').attr("src", $('#classOfProduct').val());
-
-        $('#classOfProduct').change(function() {
-            $('#showICON').attr("src", $('#classOfProduct').val());
-        });
+        setHelperText();
+        $('#typeOfProduct').change(function() { setHelperText() });
 
         let path = $('.dropdown-menu a:first-child').find('img').attr("src");
-        $('#showICON').attr("src", path);
         $('#iconPathProduct').val(path);
+        $('#showICON').attr("src", path);
         $('.dropdown-menu a').click(function() {
             let title = $(this).text();
             let value = $(this).find('img').attr("src");

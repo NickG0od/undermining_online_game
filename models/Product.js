@@ -5,6 +5,10 @@ const schema = new Schema({
         type: String,
         required: true
     },
+    typeRU: {
+        type: String,
+        required: false
+    },
     title: {
         type: String,
         required: true
@@ -23,6 +27,11 @@ const schema = new Schema({
     },
     description: {
         type: String,
+        required: false
+    },
+    img: {
+        data: Buffer,
+        contentType: String,
         required: false
     }
 })

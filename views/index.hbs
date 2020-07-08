@@ -1,69 +1,121 @@
 <h3 style="margin: 1rem;">Гастрономическая карта</h3>
-
 <div class="btn-toolbar justify-content-between mb-2 mt-2" role="toolbar" aria-label="Map's type">
     <div class="btn-group" role="group">
         <button type="button" class="btn btn-outline-primary" id="productType">Продукты</button>
         <button type="button" class="btn btn-outline-primary" id="dishType">Блюда</button>
+        <button type="button" class="btn btn-outline-primary" id="wildPlantType">Дикоросы</button>
+        <button type="button" class="btn btn-outline-primary" id="fishType">Рыба</button>
     </div>
     <div class="btn-group" role="group">
         <button type="button" class="btn btn-outline-primary" id="allType">Вся карта</button>
-  </div>
+    </div>
 </div>
 
 <div class="container">
     <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
 </div>
 
-<h3 style="margin-top: 1rem;">Подробнее</h3>
+<h3 style="margin: 1rem;">Подробнее</h3>
+<div class="container">
+    <div class="row">
+        {{#each products}}
+        <div class="col-sm-3 col-md-3 pb-2 mb-2 card-wrapper" value="{{ type }}">
+            <div class="card">
+                <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="imgError(this);"> 
+                <div class="card-body">
+                    <h5 class="card-title">{{ title }}</h5>
+                    <p class="card-text">{{ description }}</p>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div> 
+</div>
+
 
 <script src="/js/jquery-3.5.1.js"></script>
 <script type="text/javascript">
     let myMap = null;
     function startYandex(url) {
         ymaps.ready(init);
-
         function init() {
-        myMap = new ymaps.Map("map", {
-            center: [55.76, 37.64],
-            zoom: 7
-        }),
+            myMap = new ymaps.Map("map", {
+                center: [55.755, 37.619],
+                zoom: 8
+            }, {
+                restrictMapArea: [
+                    [85, -179],
+                    [-65, 179]
+                ]
+            });
 
-        objectManager = new ymaps.ObjectManager({
-            clusterize: true,
-            gridSize: 32,
-            clusterDisableClickZoom: true
-        });
+            objectManager = new ymaps.ObjectManager({
+                clusterize: true,
+                gridSize: 32,
+                clusterDisableClickZoom: true
+            });
 
-        //objectManager.objects.options.set('preset', 'islands#greenDotIcon');
-        objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
-        myMap.geoObjects.add(objectManager);
+            //objectManager.objects.options.set('preset', 'islands#greenDotIcon');
+            objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
+            myMap.geoObjects.add(objectManager);
 
-        $.ajax({
-            url: url
-        }).done(function(data) {
-            objectManager.add(data);
-        });
-    }
+            $.ajax({
+                url: url
+            }).done(function(data) {
+                objectManager.add(data);
+            });
+        }
     }
 </script>
 <script>
+function filterObjects(type) {
+    const $cards = $('.card-wrapper');
+    $cards.each( function(index) {
+        if ($(this).attr("value") != type && type != "all") {
+            $(this).addClass("d-none");
+        } else {
+            $(this).removeClass("d-none");
+        }
+    });
+}
+
+function imgError(image) {
+    image.src = '/images/default.png';
+    image.onerror = null;
+    return true;
+}
+
 $(document).ready(function() {
-    startYandex("/data/dataMapProducts.json");
+    startYandex("/data/dataMap_product.json");
+    filterObjects("product");
 
     $('#productType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMapProducts.json");
+        startYandex("/data/dataMap_product.json");
+        filterObjects("product");
     });
-
     $('#dishType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMapDishes.json");
+        startYandex("/data/dataMap_dish.json");
+        filterObjects("dish");
     });
-
+    $('#wildPlantType').click(function() {
+        if (myMap) {myMap.destroy();}
+        startYandex("/data/dataMap_wild_plant.json");
+        filterObjects("wild_plant");
+    });
+    $('#fishType').click(function() {
+        if (myMap) {myMap.destroy();}
+        startYandex("/data/dataMap_fish.json");
+        filterObjects("fish");
+    });
     $('#allType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMapAll.json");
+        startYandex("/data/dataMap_all.json");
+        filterObjects("all");
     });
+
+
 
 });
 </script>

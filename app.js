@@ -29,6 +29,7 @@ async function start() {
     try {
         await mongoose.connect(mongoDB, {
             useNewUrlParser: true,
+            useUnifiedTopology: true,
             useFindAndModify: false
         })
 
