@@ -21,7 +21,7 @@
         {{#each products}}
         <div class="col-sm-3 col-md-3 pb-2 mb-2 card-wrapper" value="{{ type }}">
             <div class="card">
-                <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="imgError(this);"> 
+                <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
                 <div class="card-body">
                     <h5 class="card-title">{{ title }}</h5>
                     <p class="card-text">{{ description }}</p>
@@ -77,12 +77,6 @@ function filterObjects(type) {
             $(this).removeClass("d-none");
         }
     });
-}
-
-function imgError(image) {
-    image.src = '/images/default.png';
-    image.onerror = null;
-    return true;
 }
 
 $(document).ready(function() {
