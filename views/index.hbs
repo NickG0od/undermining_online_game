@@ -15,16 +15,18 @@
     <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
 </div>
 
-<h3 style="margin: 1rem;">Подробнее</h3>
+<h3 style="margin: 1rem;" id="block">Подробнее</h3>
 <div class="container">
     <div class="row">
         {{#each products}}
         <div class="col-sm-3 col-md-3 pb-2 mb-2 card-wrapper" value="{{ type }}">
-            <div class="card">
+            <div class="card" id="{{ _id }}">
                 <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
                 <div class="card-body">
-                    <h5 class="card-title">{{ title }}</h5>
+                    <h4 class="card-title">{{ title }}</h4>
+                    <h6 class="card-text"><em>{{ typeRU }}</em></h6>
                     <p class="card-text">{{ description }}</p>
+                    <p class="card-text"><small>Регион: {{ region }}</small></p>
                 </div>
             </div>
         </div>
@@ -36,9 +38,13 @@
 <script src="/js/jquery-3.5.1.js"></script>
 <script type="text/javascript">
     let myMap = null;
+    let choosenCard = null;
+
     function startYandex(url) {
         ymaps.ready(init);
         function init() {
+            let dataMarks = null;
+
             myMap = new ymaps.Map("map", {
                 center: [55.755, 37.619],
                 zoom: 8
@@ -49,20 +55,68 @@
                 ]
             });
 
+            let circlePointer = new ymaps.Circle([
+                [55.755, 37.619], // Координаты центра круга
+                100 // Радиус круга в метрах
+            ], {}, {
+                draggable: false,
+                fillColor: "#FF5240",
+                strokeColor: "#000000",
+                fillOpacity: 0.3,
+                strokeOpacity: 0.5,
+                strokeWidth: 2
+            });
+
+            const cards = document.getElementsByClassName("card");
+            for (let i=0; i<cards.length; i++) {
+                cards[i].onclick = function (e) {
+                    if (dataMarks != null) {
+                        let coords = null;
+                        for (let j=0; j<dataMarks.features.length; j++) {
+                            const id = dataMarks.features[j].id_glob;
+                            if (id == choosenCard) {
+                                coords = dataMarks.features[j].geometry.coordinates;
+                                myMap.setCenter (coords, 14);
+                            }
+                        }
+                        if (coords != null) {
+                            circlePointer.geometry._radius = Math.pow(1.9, 9);
+                            circlePointer.geometry._coordinates = coords;
+                            myMap.setCenter (coords, 14);
+                            myMap.geoObjects.add(circlePointer);
+                            isCirclePointer = true;
+                        }
+                        else {
+                            myMap.setCenter ([55.755, 37.619], 7);
+                            myMap.geoObjects.remove(circlePointer);
+                            isCirclePointer = false;
+                        }
+                    }
+                }
+            }
+
+            let isCirclePointer = false;
+            myMap.events.add('boundschange', function(e) {
+                if (isCirclePointer) {
+                    myMap.geoObjects.remove(circlePointer);
+                    circlePointer.geometry._radius = Math.pow(1.9, (23-e.get('newZoom')));
+                    myMap.geoObjects.add(circlePointer);
+                }
+            });
+
             objectManager = new ymaps.ObjectManager({
                 clusterize: true,
                 gridSize: 32,
                 clusterDisableClickZoom: true
             });
-
-            //objectManager.objects.options.set('preset', 'islands#greenDotIcon');
             objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
             myMap.geoObjects.add(objectManager);
 
             $.ajax({
                 url: url
             }).done(function(data) {
-                objectManager.add(data);
+                dataMarks = data;
+                objectManager.add(dataMarks);
             });
         }
     }
@@ -70,7 +124,7 @@
 <script>
 function filterObjects(type) {
     const $cards = $('.card-wrapper');
-    $cards.each( function(index) {
+    $cards.each(function(index) {
         if ($(this).attr("value") != type && type != "all") {
             $(this).addClass("d-none");
         } else {
@@ -79,10 +133,26 @@ function filterObjects(type) {
     });
 }
 
+function chooseCardHandler(obj, choosen) {
+    if (choosen != obj.attr("id")) {choosen = obj.attr("id");}
+    else {choosen = null}
+   
+    const $cards = $('.card');
+    $cards.each(function(index) {
+        if ($(this).attr("id") == choosen) {
+            $(this).addClass("card-choosen");
+        } else {
+            $(this).removeClass("card-choosen");
+        }
+    });
+    return choosen;
+}
+
 $(document).ready(function() {
+    choosenCard = null;
+
     startYandex("/data/dataMap_product.json");
     filterObjects("product");
-
     $('#productType').click(function() {
         if (myMap) {myMap.destroy();}
         startYandex("/data/dataMap_product.json");
@@ -109,7 +179,10 @@ $(document).ready(function() {
         filterObjects("all");
     });
 
-
+    // Выбор карточки из списка "подробнее":
+    $('.card').click(function () {
+        choosenCard = chooseCardHandler($(this), choosenCard);
+    });
 
 });
 </script>

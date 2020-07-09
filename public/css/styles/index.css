@@ -1,0 +1,7 @@
+.card:hover {
+    background-color: #6fb5ff !important;
+}
+
+.card-choosen {
+    border: 5px dashed black !important;
+}

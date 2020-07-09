@@ -31,35 +31,7 @@ router.get('/', async (req, res) => {
             features: []
         }
     }) 
-
     for (let i=0; i<products.length; i++) {
-        let elemOfMap = {
-            type: "Feature",
-            id: i,
-            geometry: {
-                type: "Point",
-                coordinates: products[i].coordinates,
-            },
-            options: {
-                iconLayout: "default#image",
-                iconImageHref: `${products[i].icon_path}`,
-                iconImageSize: [24, 24],
-                iconImageOffset: [0, 0]
-            },
-            properties: {
-                balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p>`,
-                balloonContentFooter: `<p>Регион продукта: ${products[i].region}</p>`,
-                clusterCaption: `<p>Я - ${products[i].title}</p>`,
-                hintContent: `<strong>Это - ${products[i].title}</strong>`              
-            }
-        }
-        arrayTypes.forEach(elem => {
-            if (products[i].type == elem && elem != "all") {
-                dataMap[elem].features.push(elemOfMap)
-            }
-        })
-        dataMap["all"].features.push(elemOfMap)
-
         try {
             if (products[i].img.data) {
                 products[i].img.dataStr = products[i].img.data.toString('base64')
@@ -69,6 +41,33 @@ router.get('/', async (req, res) => {
             contentType: 'null',
             dataStr: ""
         }}
+        let elemOfMap = {
+            type: "Feature",
+            id: i,
+            id_glob: products[i]._id,
+            geometry: {
+                type: "Point",
+                coordinates: products[i].coordinates,
+            },
+            options: {
+                iconLayout: "default#image",
+                iconImageHref: `${products[i].icon_path}`,
+                iconImageSize: [24, 24],
+                iconImageOffset: [-12, -12]
+            },
+            properties: {
+                balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="width: 128px; height: 128px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
+                balloonContentFooter: `<p>Регион продукта: ${products[i].region}</p>`,
+                clusterCaption: `<p>- ${products[i].title}</p>`,
+                hintContent: `<strong>${products[i].title}</strong>`              
+            }
+        }
+        arrayTypes.forEach(elem => {
+            if (products[i].type == elem && elem != "all") {
+                dataMap[elem].features.push(elemOfMap)
+            }
+        })
+        dataMap["all"].features.push(elemOfMap)
     }
 
     try {
@@ -90,7 +89,6 @@ router.get('/', async (req, res) => {
 
 router.get('/products_show', async (req, res) => {
     const products = await Product.find({}).lean()
-
     const GetDataIcons = () => {
         return new Promise((resolve, reject) => {
             let fetchedData = {}
@@ -119,9 +117,8 @@ router.get('/products_show', async (req, res) => {
 router.post('/product_create', upload.single('image'), async (req, res) => {
     let img = {
         data: "",
-        contentType: 'null'
+        contentType: 'null',
     }
-
     try {
         img.data = fs.readFileSync(`public/uploads/${req.file.filename}`)
         img.contentType = 'image/png'
@@ -153,7 +150,6 @@ router.post('/product_delete', async (req, res) => {
 
 router.post('/product_edit', async (req, res) => {
     let newValues = {}
-    
     if (req.body['coordinates'][0] != 0 && req.body['coordinates'][1] != 0) {
         newValues['coordinates'] = req.body['coordinates']
         newValues['region'] = req.body['region']
@@ -164,7 +160,6 @@ router.post('/product_edit', async (req, res) => {
     try {
         await Product.updateOne({ _id : new mongo.ObjectID(req.body['id'])}, {$set: newValues})
     } catch (e) {console.log(e)}
-
     res.redirect('/products_show')
 })
 
