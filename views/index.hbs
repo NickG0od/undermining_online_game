@@ -20,7 +20,7 @@
     <div class="row">
         {{#each products}}
         <div class="col-sm-3 col-md-3 pb-2 mb-2 card-wrapper" value="{{ type }}">
-            <div class="card" id="{{ _id }}">
+            <div class="card card-product" id="{{ _id }}">
                 <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
                 <div class="card-body">
                     <h4 class="card-title">{{ title }}</h4>
@@ -35,6 +35,26 @@
         {{/each}}
     </div> 
 </div>
+
+<h3 style="margin: 1rem;" id="block">Регионы - участники проекта</h3>
+{{#if partners.length}}
+<div class="container">
+    <div class="row">
+        {{#each partners}}
+        <div class="col-sm-3 col-md-3 pb-2 mb-2">
+            <div class="card card-partner" id="{{ _id }}">
+                <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                <div class="card-body">
+                    <h4 class="card-title">{{ title }}</h4>
+                    <p class="card-text">{{ description }}</p>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div> 
+</div>
+{{/if}}
+
 
 
 <script src="/js/jquery-3.5.1.js"></script>
@@ -108,7 +128,7 @@
                 }
             });
 
-            function ColorRegs(data) {
+            function ColorAndPartnerRegs(data) {
                 ymaps.borders.load('RU', {
                 lang: "ru",
                 quality: 2
@@ -128,6 +148,28 @@
                                 strokeOpacity: 0.4
                             });
                             myMap.geoObjects.add(geoObject);
+                        }
+
+                        // Штриховка:
+                        const decodedJson = decodeURIComponent("{{{dataRegPartners}}}");
+                        const jsonObj = JSON.parse(decodedJson);
+                        if (jsonObj) {
+                            for (let k=0; k<jsonObj.length; k++) {
+                                if (geojson.features[i].properties.iso3166 == jsonObj[k]) {
+                                    let properties= geojson.features[i].properties;
+                                    properties.hintContent = '';
+                                    let geoObject = new ymaps.GeoObject ({
+                                        geometry: geojson.features[i].geometry,
+                                        properties: properties,
+                                    }, {
+                                        fillImageHref: "images/hatching.png",
+                                        fillMethod: 'tile',
+                                        fillColor: '#ffffff',
+                                        fillOpacity: 0.2
+                                    });
+                                    myMap.geoObjects.add(geoObject);
+                                }
+                            }
                         }
                     }
                 });
@@ -151,7 +193,7 @@
             $.ajax({
                 url: `/data/dynamic/dataRegColors_${url}.json`
             }).done(function(data) {
-                ColorRegs(data);
+                ColorAndPartnerRegs(data);
             });
         }
     }
@@ -175,7 +217,7 @@ function chooseCardHandler(obj, choosen) {
     } catch (e) {
         choosen = null;
     }
-    const $cards = $('.card');
+    const $cards = $('.card-product');
     $cards.each(function(index) {
         if ($(this).attr("id") == choosen) {
             $(this).addClass("card-choosen");

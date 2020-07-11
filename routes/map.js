@@ -3,6 +3,7 @@ const router = Router()
 
 const Product = require('../models/Product')
 const Cuisine = require('../models/Cuisine')
+const Partner = require('../models/Partner')
 const { mongo } = require('mongoose')
 const fs = require('fs')
 const utils = require('../utils')
@@ -24,6 +25,23 @@ const upload = multer({storage: storage})
 router.get('/', async (req, res) => {
     const products = await Product.find({}).lean()
     const cuisines = await Cuisine.find({}).lean()
+    const partners = await Partner.find({}).lean()
+
+    let dataPartners = []
+    if (partners.length) {
+        for (let i=0; i<partners.length; i++) {
+            dataPartners.push(partners[i].iso3166)
+            try {
+                if (partners[i].img.data) {
+                    partners[i].img.dataStr = partners[i].img.data.toString('base64')
+                }
+            } catch (e) { partners[i].img = {
+                data: "",
+                contentType: 'null',
+                dataStr: ""
+            }}
+        }
+    }
 
     let dataColorRegs = {}
     if (cuisines.length) {
@@ -51,11 +69,12 @@ router.get('/', async (req, res) => {
             if (products[i].img.data) {
                 products[i].img.dataStr = products[i].img.data.toString('base64')
             }
-        } catch (e) {products[i].img = {
+        } catch (e) { products[i].img = {
             data: "",
             contentType: 'null',
             dataStr: ""
         }}
+
         let elemOfMap = {
             type: "Feature",
             id: i,
@@ -72,7 +91,7 @@ router.get('/', async (req, res) => {
                 iconImageOffset: [-12, -12]
             },
             properties: {
-                balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="width: 128px; height: 128px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
+                balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
                 balloonContentFooter: `<p>Регион: ${products[i].regions[0].title}</p>`,
                 clusterCaption: `<p>- ${products[i].title}</p>`,
                 hintContent: `<strong>${products[i].title}</strong>`              
@@ -123,7 +142,9 @@ router.get('/', async (req, res) => {
     res.render('index', {
         title: 'MAPPO Карта',
         isIndex: true,
-        products
+        products,
+        partners,
+        dataRegPartners: encodeURIComponent(JSON.stringify(dataPartners))
     })
 })
 
@@ -165,9 +186,35 @@ router.get('/cuisines_editor', async (req, res) => {
 })
 
 router.get('/partners_editor', async (req, res) => {
+    const partners = await Partner.find({}).lean()
+    let dataRegs = await utils.getDataISO3166()
+        
+
+    if (partners.length) {
+        for (let i=0; i<partners.length; i++) {
+            let code = partners[i].iso3166
+            dataRegs = dataRegs.filter(function(el) {
+                if (el['iso3166'] == code) {return false;}
+                else {return true;}
+            })
+
+            try {
+                if (partners[i].img.data) {
+                    partners[i].img.dataStr = partners[i].img.data.toString('base64')
+                }
+            } catch (e) { partners[i].img = {
+                data: "",
+                contentType: 'null',
+                dataStr: ""
+            }}
+        }
+    }
+
     res.render('partners_editor', {
         title: 'Редактор "Участники"',
-        isPartnersEditor: true
+        isPartnersEditor: true,
+        partners,
+        dataRegs
     })
 })
 
@@ -259,6 +306,46 @@ router.post('/cuisine_delete', async (req, res) => {
         } catch (e) {console.log(e)}
     }
     res.redirect('/cuisines_editor')
+})
+
+router.post('/cuisine_edit', async (req, res) => {
+    res.redirect('/cuisines_editor')
+})
+
+
+router.post('/partner_create', upload.single('image'), async (req, res) => {
+    let img = {
+        data: "",
+        contentType: 'null',
+    }
+    try {
+        img.data = fs.readFileSync(`public/uploads/${req.file.filename}`)
+        img.contentType = 'image/png'
+    } catch (e) {}
+    let splitted = req.body.title.split(':')
+
+    const partner = Partner({
+        title: splitted[1],
+        iso3166: splitted[0],
+        img: img,
+        description: req.body.description,
+    })
+    await partner.save()
+    res.redirect('/partners_editor')
+})
+
+router.post('/partner_delete', async (req, res) => {
+    const checkers = Array.isArray(req.body.checked) ? req.body.checked : Array.of(req.body.checked)
+    for (const id of checkers) {
+        try {
+            await Partner.deleteOne({ _id : new mongo.ObjectID(id)})
+        } catch (e) {console.log(e)}
+    }
+    res.redirect('/partners_editor')
+})
+
+router.post('/partner_edit', async (req, res) => {
+    res.redirect('/partners_editor')
 })
 
 module.exports = router

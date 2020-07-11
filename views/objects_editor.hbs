@@ -2,7 +2,7 @@
 
 {{#if products.length}}
 <form id="showing_products">
-<table class="table table-sm table-hover table-striped">
+<table class="table table-sm table-hover">
     <thead>
         <tr class="table-info">
             <th scope="col">#</th>
@@ -39,7 +39,6 @@
 <p>[ В БД нет продуктов ]</p>
 <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
 {{/if}}
-
 <!-- Modals -->
 <!-- Создание продукта -->
 <div class="modal fade" id="createProductModal" tabindex="-1" role="dialog" aria-labelledby="createProductModalLabel" aria-hidden="true">

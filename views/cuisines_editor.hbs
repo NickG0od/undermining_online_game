@@ -2,7 +2,7 @@
 
 {{#if cuisines.length}}
 <form id="showing_cuisines">
-<table class="table table-sm table-hover table-striped">
+<table class="table table-sm table-hover">
     <thead>
         <tr class="table-info">
             <th scope="col">#</th>
@@ -23,7 +23,7 @@
                 <p>{{ title }}</p>
                 {{/each}}
             </td>
-            <td><button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_cuisine_{{@index}}" data-toggle="modal" data-target="#editCuisineModal" value="{{_id}}">Изменить</button></td>
+            <td><button type="button" class="btn btn-outline-dark btn-edit-cuisine" id="edit_cuisine_{{@index}}" data-toggle="modal" data-target="#editCuisineModal" value="{{_id}}">Изменить</button></td>
         
             <input type="hidden" value="{{_id}}" name="id">
         </tr>
@@ -33,12 +33,10 @@
 <button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
 <button type="reset" class="btn btn-outline-dark" id="delete_cuisines">Удалить</button>
 </form>
-</form>
 {{else}}
 <p>[ БД пуста ]</p>
 <button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
 {{/if}}
-
 <!-- Modals -->
 <!-- Создание кухни -->
 <div class="modal fade" id="createCuisineModal" tabindex="-1" role="dialog" aria-labelledby="createCuisineModalLabel" aria-hidden="true">
@@ -105,6 +103,7 @@
 
 <script src="/js/jquery-3.5.1.js"></script>
 <script>
+    // Удаление выбранных элементов "Кухня"
     $('#delete_cuisines').click(async function() {
         let data = $('#showing_cuisines').serialize();
         try {
