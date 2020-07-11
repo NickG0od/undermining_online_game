@@ -9,8 +9,14 @@
             <li class="nav-item {{#if isIndex}} active {{/if}}">
                 <a class="nav-link" href="/">Карта</a>
             </li>
-            <li class="nav-item {{#if isProductsShow}} active {{/if}}">
-                <a class="nav-link" href="/products_show">Список всех объектов</a>
+            <li class="nav-item {{#if isObjectsEditor}} active {{/if}}">
+                <a class="nav-link" href="/objects_editor">Редактор "Объекты"</a>
+            </li>
+            <li class="nav-item {{#if isCuisinesEditor}} active {{/if}}">
+                <a class="nav-link" href="/cuisines_editor">Редактор "Кухни"</a>
+            </li>
+            <li class="nav-item {{#if isPartnersEditor}} active {{/if}}">
+                <a class="nav-link" href="/partners_editor">Редактор "Участники"</a>
             </li>
         </ul>
     </div>

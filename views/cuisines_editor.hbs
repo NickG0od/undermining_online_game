@@ -1,0 +1,125 @@
+<h4 style="margin: 1rem;">Список всех кухонь</h4>
+
+{{#if cuisines.length}}
+<form id="showing_cuisines">
+<table class="table table-sm table-hover table-striped">
+    <thead>
+        <tr class="table-info">
+            <th scope="col">#</th>
+            <th scope="col">Название</th>
+            <th scope="col">Цвет</th>
+            <th scope="col">Регионы</th>
+            <th scope="col">-</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each cuisines}}
+        <tr>
+            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+            <td>{{ title }}</td>
+            <td><div class="color-box" style="background-color: {{ color }};">color</div></td>
+            <td>
+                {{#each regions}}
+                <p>{{ title }}</p>
+                {{/each}}
+            </td>
+            <td><button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_cuisine_{{@index}}" data-toggle="modal" data-target="#editCuisineModal" value="{{_id}}">Изменить</button></td>
+        
+            <input type="hidden" value="{{_id}}" name="id">
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+<button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
+<button type="reset" class="btn btn-outline-dark" id="delete_cuisines">Удалить</button>
+</form>
+</form>
+{{else}}
+<p>[ БД пуста ]</p>
+<button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
+{{/if}}
+
+<!-- Modals -->
+<!-- Создание кухни -->
+<div class="modal fade" id="createCuisineModal" tabindex="-1" role="dialog" aria-labelledby="createCuisineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createCuisineModalLabel">Создание кухни</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="/cuisine_create" method="POST" id="creatingCuisine">
+                    <div class="form-group">
+                        <label for="nameOfCuisine">Название</label>
+                        <input type="text" class="form-control" id="nameOfCuisine" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regionsOfCuisine">Регионы</label>
+                        <select class="selectpicker" id="regionsOfCuisine" data-live-search="true" data-actions-box="true" name="regions" multiple required>
+                            {{#each dataRegs}}
+                            <option value="{{ iso3166 }}:{{ title }}">{{ title }}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="colorOfCuisine">Цвет</label>
+                        <input type="color" id="colorOfCuisine" name="color" value="#000000">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="creatingCuisine">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Изменение кухни -->
+<div class="modal fade" id="editCuisineModal" tabindex="-1" role="dialog" aria-labelledby="editCuisineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCuisineModalLabel">Редактирование кухни</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="descriptionEdit">Описание</label>
+                    <input type="text" class="form-control" id="descriptionEdit" aria-describedby="editDescriptionHelp">
+                    <small id="editDescriptionHelp" class="form-text text-muted">Оставьте поле пустым, если хотите оставить прежнее описание.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveEditedInfo">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="/js/jquery-3.5.1.js"></script>
+<script>
+    $('#delete_cuisines').click(async function() {
+        let data = $('#showing_cuisines').serialize();
+        try {
+            const response = await fetch('/cuisine_delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: data
+            });
+            const status = await response.ok;
+            window.location.reload(false);
+            return;
+        } catch (error) {
+            console.error('error: ', error);
+        }
+    });
+</script>

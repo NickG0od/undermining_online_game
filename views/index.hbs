@@ -26,7 +26,9 @@
                     <h4 class="card-title">{{ title }}</h4>
                     <h6 class="card-text"><em>{{ typeRU }}</em></h6>
                     <p class="card-text">{{ description }}</p>
-                    <p class="card-text"><small>Регион: {{ region }}</small></p>
+                    {{#each regions}}
+                        <p class="card-text"><small>Регион: {{ title }}</small></p>
+                    {{/each}}
                 </div>
             </div>
         </div>
@@ -41,6 +43,8 @@
     let choosenCard = null;
 
     function startYandex(url) {
+        filterObjects(url)
+
         ymaps.ready(init);
         function init() {
             let dataMarks = null;
@@ -104,19 +108,50 @@
                 }
             });
 
-            objectManager = new ymaps.ObjectManager({
+            function ColorRegs(data) {
+                ymaps.borders.load('RU', {
+                lang: "ru",
+                quality: 2
+                }).then(function (geojson) {
+                    for (let i=0; i<geojson.features.length; i++) {
+                        if (data[geojson.features[i].properties.iso3166]) {
+                            let properties= geojson.features[i].properties;
+                            properties.hintContent = '';
+
+                            let geoObject = new ymaps.GeoObject ({
+                                geometry: geojson.features[i].geometry,
+                                properties: properties,
+                            }, {
+                                fillColor: data[geojson.features[i].properties.iso3166],
+                                fillOpacity: 0.25,
+                                strokeColor: '#000000',
+                                strokeOpacity: 0.4
+                            });
+                            myMap.geoObjects.add(geoObject);
+                        }
+                    }
+                });
+            }
+
+            objectManagerMarks = new ymaps.ObjectManager({
                 clusterize: true,
                 gridSize: 32,
                 clusterDisableClickZoom: true
             });
-            objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
-            myMap.geoObjects.add(objectManager);
+            objectManagerMarks.clusters.options.set('preset', 'islands#greenClusterIcons');
+            myMap.geoObjects.add(objectManagerMarks);
 
             $.ajax({
-                url: url
+                url: `/data/dynamic/dataMap_${url}.json`
             }).done(function(data) {
                 dataMarks = data;
-                objectManager.add(dataMarks);
+                objectManagerMarks.add(dataMarks);
+            });
+
+            $.ajax({
+                url: `/data/dynamic/dataRegColors_${url}.json`
+            }).done(function(data) {
+                ColorRegs(data);
             });
         }
     }
@@ -134,9 +169,12 @@ function filterObjects(type) {
 }
 
 function chooseCardHandler(obj, choosen) {
-    if (choosen != obj.attr("id")) {choosen = obj.attr("id");}
-    else {choosen = null}
-   
+    try {
+        if (choosen != obj.attr("id")) {choosen = obj.attr("id");}
+        else {choosen = null;}
+    } catch (e) {
+        choosen = null;
+    }
     const $cards = $('.card');
     $cards.each(function(index) {
         if ($(this).attr("id") == choosen) {
@@ -149,40 +187,36 @@ function chooseCardHandler(obj, choosen) {
 }
 
 $(document).ready(function() {
-    choosenCard = null;
-
-    startYandex("/data/dataMap_product.json");
-    filterObjects("product");
+    choosenCard = chooseCardHandler(null, choosenCard);
+    startYandex("product");
     $('#productType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMap_product.json");
-        filterObjects("product");
+        choosenCard = chooseCardHandler(null, choosenCard);
+        startYandex("product");
     });
     $('#dishType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMap_dish.json");
-        filterObjects("dish");
+        choosenCard = chooseCardHandler(null, choosenCard);
+        startYandex("dish");
     });
     $('#wildPlantType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMap_wild_plant.json");
-        filterObjects("wild_plant");
+        choosenCard = chooseCardHandler(null, choosenCard);
+        startYandex("wild_plant");
     });
     $('#fishType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMap_fish.json");
-        filterObjects("fish");
+        choosenCard = chooseCardHandler(null, choosenCard);
+        startYandex("fish");
     });
     $('#allType').click(function() {
         if (myMap) {myMap.destroy();}
-        startYandex("/data/dataMap_all.json");
-        filterObjects("all");
+        choosenCard = chooseCardHandler(null, choosenCard);
+        startYandex("all");
     });
-
     // Выбор карточки из списка "подробнее":
     $('.card').click(function () {
         choosenCard = chooseCardHandler($(this), choosenCard);
     });
-
 });
 </script>

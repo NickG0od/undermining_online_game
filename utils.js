@@ -1,3 +1,7 @@
+const fs = require('fs')
+const JSONStream = require('JSONStream')
+
+
 class Utils {
     constructor() {}
 
@@ -15,6 +19,41 @@ class Utils {
             }
         }
         return typesAll[country_code][id_type]
+    }
+
+    async getDataIcons() {
+        const GetData = () => {
+            return new Promise((resolve, reject) => {
+                let fetchedData = {}
+                fs.createReadStream("public/data/static/dataIcons.json")
+                    .pipe(JSONStream.parse('*'))
+                    .on('data', (data) => {
+                        fetchedData = data
+                        for (let i = 0; i<fetchedData.length; i++) {
+                            fetchedData[i]['id'] = fetchedData[i]['path'].replace("/icons/", '').replace(".png", '')
+                        }
+                        resolve(fetchedData)
+                    })
+                    .on('error', reject)
+            })
+        }
+        return await GetData()
+    }
+
+    async getDataISO3166() {
+        const GetData = () => {
+            return new Promise((resolve, reject) => {
+                let fetchedData = {}
+                fs.createReadStream("public/data/static/dataCodeRegs.json")
+                    .pipe(JSONStream.parse('*'))
+                    .on('data', (data) => {
+                        fetchedData = data
+                        resolve(fetchedData)
+                    })
+                    .on('error', reject)
+            })
+        }
+        return await GetData()
     }
 }
 

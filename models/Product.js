@@ -17,13 +17,15 @@ const schema = new Schema({
         type: String,
         required: true
     },
-    coordinates: {
+    regions: {
         type: Array,
-        default: [50, 50]
-    },
-    region: {
-        type: String,
-        required: false
+        default: [
+            {
+                title: "Область...",
+                coordinates: [0, 0],
+                iso3166: "RU_DEF"
+            }
+        ]
     },
     description: {
         type: String,

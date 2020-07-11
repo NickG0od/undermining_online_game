@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const path = require('path')
 const exphbs = require('express-handlebars')
 
-const mapRoute = require('./routes/map')
+const mainRoute = require('./routes/map')
 
 const PORT = process.env.PORT || 3000
 const mongoDB = 'mongodb+srv://freequx:1f2r3e4e@cluster0.gwkxc.gcp.mongodb.net/products'
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended:true }))
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.use(mapRoute)
+app.use(mainRoute)
 
 async function start() {
     try {

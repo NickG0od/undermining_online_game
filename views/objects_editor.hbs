@@ -21,8 +21,10 @@
             <td>{{ title }}</td>
             <td>{{ typeRU }}</td>
             <td>{{ description }}</td>
-            <td>{{ region }}</td>
+            {{#each regions}}
+            <td>{{ title }}</td>
             <td>{{ coordinates }}</td>
+            {{/each}}
             <td><button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_product_{{@index}}" data-toggle="modal" data-target="#editProductModal" value="{{_id}}">Изменить</button></td>
         
             <input type="hidden" value="{{_id}}" name="id">
@@ -49,8 +51,8 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="modalBodyCreate">
-                <form action="/product_create" method="POST" id="creatingProduct" enctype="multipart/form-data">
+            <div class="modal-body">
+                <form action="/obj_create" method="POST" id="creatingProduct" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="typeOfProduct">Тип</label>
                         <select class="form-control" id="typeOfProduct" name="type">
@@ -86,7 +88,7 @@
                     </div>
                     <div class="form-group">
                         <label for="regOfProduct">Субъект РФ</label>
-                        <input type="text" class="form-control" id="regOfProduct" name="region" aria-describedby="regHelp" value="Россия, Москва">
+                        <input type="text" class="form-control" id="regOfProduct" name="region" aria-describedby="regHelp" value="Москва">
                         <small id="regHelp" class="form-text text-muted"></small>
                     </div>
                     <div class="form-group">
@@ -159,7 +161,6 @@
 
         myMap.events.add('click', function (e) {
             coords = e.get('coords');
-            console.log(coords);
             if (myPlacemark) {
                 myPlacemark.geometry.setCoordinates(coords);
             }
@@ -195,10 +196,22 @@
     }
 </script>
 <script>
+    function GetISO3166ByReg(region) {
+        const decodedJson = decodeURIComponent("{{{dataCodeRegs}}}");
+        const jsonObj = JSON.parse(decodedJson);
+        for (let i=0; i<jsonObj.length; i++) {
+            let r = "";
+            if (region.toLowerCase().indexOf(jsonObj[i].title.toLowerCase()) !== -1) {
+                return jsonObj[i].iso3166;
+            } 
+        }
+        return "NULL";
+    }
+
     $('#delete_products').click(async function() {
         let data = $('#showing_products').serialize();
         try {
-            const response = await fetch('/product_delete', {
+            const response = await fetch('/obj_delete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -215,7 +228,7 @@
  
     let idToEdit = "";
     const buttonsEditProduct = document.getElementsByClassName('btn-edit-product');
-    for (let i=0; i<buttonsEditProduct.length; i++){
+    for (let i=0; i<buttonsEditProduct.length; i++) {
         buttonsEditProduct[i].addEventListener('click', async function(e) { 
             idToEdit = $(this).prop('value');
         });
@@ -224,10 +237,9 @@
         let region = "";
         if (firstGeoObject != "") {
             const arrayOfStrings = firstGeoObject.getAddressLine().split(", ");
-            if (arrayOfStrings.length > 1) {region += arrayOfStrings[0] + ", " + arrayOfStrings[1];}
+            if (arrayOfStrings.length > 1) {region += arrayOfStrings[1];}
             else {region = arrayOfStrings[0];}
         }
-
         let title = $('#nameOfProductEdit').val();
         let description = $('#descriptionEdit').val();
 
@@ -236,13 +248,19 @@
 
         data = {
             id: idToEdit,
-            coordinates: coords,
-            region: region,
+            regions: [
+                {
+                    title: region,
+                    coordinates: coords,
+                    iso3166: GetISO3166ByReg(region)
+                }
+            ],
             title: title,
             description: description
         }
+
         try {
-            const response = await fetch('/product_edit', {
+            const response = await fetch('/obj_edit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -281,10 +299,6 @@
     }
 
     $(document).ready(function() {
-        $('#createProductModal').on('hide.bs.modal', function (e) {
-            console.log("aasas")
-        });
-
         setHelperText();
         $('#typeOfProduct').change(function() { setHelperText() });
 
