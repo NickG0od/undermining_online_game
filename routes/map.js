@@ -148,6 +148,29 @@ router.get('/', async (req, res) => {
     })
 })
 
+router.get('/partners', async (req, res) => {
+    const partners = await Partner.find({}).lean()
+    if (partners.length) {
+        for (let i=0; i<partners.length; i++) {
+            try {
+                if (partners[i].img.data) {
+                    partners[i].img.dataStr = partners[i].img.data.toString('base64')
+                }
+            } catch (e) { partners[i].img = {
+                data: "",
+                contentType: 'null',
+                dataStr: ""
+            }}
+        }
+    }
+
+    res.render('partners', {
+        title: 'Участники проекта',
+        isPartners: true,
+        partners
+    })
+})
+
 router.get('/objects_editor', async (req, res) => {
     const products = await Product.find({}).lean()
     const dataIcons = await utils.getDataIcons()

@@ -15,45 +15,42 @@
     <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
 </div>
 
-<h3 style="margin: 1rem;" id="block">Подробнее</h3>
+<h3 style="margin: 1rem;" id="block">Объекты на карте</h3>
 <div class="container">
     <div class="row">
         {{#each products}}
-        <div class="col-sm-3 col-md-3 pb-2 mb-2 card-wrapper" value="{{ type }}">
+        <div class="col-sm-3 mb-3 card-wrapper" value="{{ type }}">
             <div class="card card-product" id="{{ _id }}">
                 <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
                 <div class="card-body">
                     <h4 class="card-title">{{ title }}</h4>
-                    <h6 class="card-text"><em>{{ typeRU }}</em></h6>
-                    <p class="card-text">{{ description }}</p>
                     {{#each regions}}
-                        <p class="card-text"><small>Регион: {{ title }}</small></p>
+                        <p class="card-text">{{ title }}</p>
                     {{/each}}
+                    <a class="btn btn-outline-primary card-link" data-toggle="modal" data-target="#descriptionOfObj" value="{{ description }}">Подробнее</a>
                 </div>
             </div>
         </div>
         {{/each}}
-    </div> 
+    </div>
 </div>
-
-<h3 style="margin: 1rem;" id="block">Регионы - участники проекта</h3>
-{{#if partners.length}}
-<div class="container">
-    <div class="row">
-        {{#each partners}}
-        <div class="col-sm-3 col-md-3 pb-2 mb-2">
-            <div class="card card-partner" id="{{ _id }}">
-                <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
-                <div class="card-body">
-                    <h4 class="card-title">{{ title }}</h4>
-                    <p class="card-text">{{ description }}</p>
-                </div>
+<!-- Modals -->
+<!-- Показать подробное описание: -->
+<div class="modal fade" id="descriptionOfObj" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Описание</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="descriptionText">Modal body text goes here.</p>
             </div>
         </div>
-        {{/each}}
-    </div> 
+    </div>
 </div>
-{{/if}}
 
 
 
@@ -70,8 +67,8 @@
             let dataMarks = null;
 
             myMap = new ymaps.Map("map", {
-                center: [55.755, 37.619],
-                zoom: 8
+                center: [64.091, 81.822],
+                zoom: 3
             }, {
                 restrictMapArea: [
                     [85, -179],
@@ -149,7 +146,6 @@
                             });
                             myMap.geoObjects.add(geoObject);
                         }
-
                         // Штриховка:
                         const decodedJson = decodeURIComponent("{{{dataRegPartners}}}");
                         const jsonObj = JSON.parse(decodedJson);
@@ -165,7 +161,7 @@
                                         fillImageHref: "images/hatching.png",
                                         fillMethod: 'tile',
                                         fillColor: '#ffffff',
-                                        fillOpacity: 0.2
+                                        fillOpacity: 0.3
                                     });
                                     myMap.geoObjects.add(geoObject);
                                 }
@@ -203,9 +199,11 @@ function filterObjects(type) {
     const $cards = $('.card-wrapper');
     $cards.each(function(index) {
         if ($(this).attr("value") != type && type != "all") {
+            $(this).removeClass("d-flex");
             $(this).addClass("d-none");
         } else {
             $(this).removeClass("d-none");
+            $(this).addClass("d-flex");
         }
     });
 }
@@ -256,9 +254,22 @@ $(document).ready(function() {
         choosenCard = chooseCardHandler(null, choosenCard);
         startYandex("all");
     });
-    // Выбор карточки из списка "подробнее":
-    $('.card').click(function () {
-        choosenCard = chooseCardHandler($(this), choosenCard);
+    // Выбор карточки из списка "объекты на карте"
+    $('.card-img-top').click(function () {
+        let card = $(this).closest('.card');
+        choosenCard = chooseCardHandler(card, choosenCard);
+    });
+    // Наводка на картинку в карточке
+    $('.card-img-top').hover(function() {
+        let card = $(this).closest('.card');
+        card.addClass("card-hoverable");
+    }, function() {
+        let card = $(this).closest('.card');
+        card.removeClass("card-hoverable");
+    });
+    // Нажатие на кнопку "Подробнее" в карточке
+    $('.card-link').click(function() {
+        $('#descriptionText').text( $(this).attr("value") );
     });
 });
 </script>

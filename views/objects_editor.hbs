@@ -165,6 +165,7 @@
             }
             else {
                 myPlacemark = createPlacemark(coords);
+                console.log(coords)
                 myMap.geoObjects.add(myPlacemark);
                 myPlacemark.events.add('dragend', function () {
                     getAddress(myPlacemark.geometry.getCoordinates());
