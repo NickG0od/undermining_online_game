@@ -4,10 +4,12 @@ const router = Router()
 const Product = require('../models/Product')
 const Cuisine = require('../models/Cuisine')
 const Partner = require('../models/Partner')
+const Restaurant = require('../models/Restaurant')
 const { mongo } = require('mongoose')
 const fs = require('fs')
 const utils = require('../utils')
 const multer = require('multer'); 
+const { count } = require('console')
 
 
 const storage = multer.diskStorage({
@@ -26,6 +28,7 @@ router.get('/', async (req, res) => {
     const products = await Product.find({}).lean()
     const cuisines = await Cuisine.find({}).lean()
     const partners = await Partner.find({}).lean()
+    const restaurants = await Restaurant.find({}).lean()
 
     let dataPartners = []
     if (partners.length) {
@@ -63,7 +66,8 @@ router.get('/', async (req, res) => {
             type: "FeatureCollection",
             features: []
         }
-    }) 
+    })
+    let id_num = 0;
     for (let i=0; i<products.length; i++) {
         try {
             if (products[i].img.data) {
@@ -77,7 +81,7 @@ router.get('/', async (req, res) => {
 
         let elemOfMap = {
             type: "Feature",
-            id: i,
+            id: id_num,
             id_glob: products[i]._id,
             iso3166: products[i].regions[0].iso3166,
             geometry: {
@@ -98,18 +102,69 @@ router.get('/', async (req, res) => {
             }
         }
 
+        let dataFromRestaurants = [];
+        try {
+            products[i].restaurants.forEach(elem => {
+                try {
+                    let counter = 0;
+                    restaurants.forEach(restaurant => {
+                        if (elem == restaurant._id) {
+                            id_num ++;
+                            dataFromRestaurants.push (
+                                {
+                                    type: "Feature",
+                                    id: id_num,
+                                    id_glob: restaurant._id,
+                                    iso3166: restaurant.region.iso3166,
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: restaurant.region.coordinates,
+                                    },
+                                    options: {
+                                        iconLayout: "default#image",
+                                        iconImageHref: `${products[i].icon_path}`,
+                                        iconImageSize: [24, 24],
+                                        iconImageOffset: [-12, -12]
+                                    },
+                                    properties: {
+                                        balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p><p>Готовится в ресторане:<a class="restaurant-open-modal" id=${restaurant._id} data-toggle="modal" data-target="#showRestaurantModal">${restaurant.title}</a></p>`,
+                                        balloonContentFooter: `<p>Регион: ${restaurant.region.title}</p>`,
+                                        clusterCaption: `<p>- ${products[i].title}</p>`,
+                                        hintContent: `<strong>${products[i].title}</strong>`              
+                                    }
+                                }
+                            )
+                        }
+                        counter ++;
+                    })
+                } catch (e) {console.log(e)}
+            })
+        } catch(e) {console.log(e)}
+
         arrayTypes.forEach(elem => {
             if (products[i].type == elem && elem != "all") {
                 dataMap[elem].features.push(elemOfMap)
+                try {
+                    dataFromRestaurants.forEach(restaurant => {
+                        dataMap[elem].features.push(restaurant)
+                    })
+                } catch(e) {console.log(e)}
             }
         })
         dataMap["all"].features.push(elemOfMap)
+        try {
+            dataFromRestaurants.forEach(restaurant => {
+                dataMap["all"].features.push(restaurant)
+            })
+        } catch(e) {console.log(e)}
+
 
         if (dataColorRegs[ products[i].regions[0].iso3166 ]) {
             if (dataColorRegs[ products[i].regions[0].iso3166 ]['types'].indexOf( products[i].type ) == -1) {
                 dataColorRegs[ products[i].regions[0].iso3166 ]['types'].push( products[i].type )
             }
         }
+        id_num ++;
     }
 
     let dataColors = {}
@@ -173,15 +228,17 @@ router.get('/partners', async (req, res) => {
 
 router.get('/objects_editor', async (req, res) => {
     const products = await Product.find({}).lean()
+    const restaurants = await Restaurant.find({}).lean()
     const dataIcons = await utils.getDataIcons()
     const dataISO3166 = await utils.getDataISO3166()
-
+    
     res.render('objects_editor', {
         title: 'Редактор "Объекты"',
         isObjectsEditor: true,
         products,
         dataIcons,
-        dataCodeRegs: encodeURIComponent(JSON.stringify(dataISO3166))
+        restaurants,
+        dataCodeRegs: encodeURIComponent(JSON.stringify(dataISO3166)),
     })
 })
 
@@ -252,6 +309,8 @@ router.post('/obj_create', upload.single('image'), async (req, res) => {
         img.contentType = 'image/png'
     } catch (e) {}
 
+    let restaurants = Array.isArray(req.body.restaurants) ? req.body.restaurants : Array.of(req.body.restaurants)
+ 
     const product = Product({
         type: req.body.type,
         typeRU: utils.getTypeById("ru", req.body.type),
@@ -264,6 +323,7 @@ router.post('/obj_create', upload.single('image'), async (req, res) => {
                 iso3166: "NO",
             }
         ],
+        restaurants : restaurants,
         description: req.body.description,
         img: img
     })
@@ -296,6 +356,34 @@ router.post('/obj_edit', async (req, res) => {
     try {
         await Product.updateOne({ _id : new mongo.ObjectID(req.body['id'])}, {$set: newValues})
     } catch (e) {console.log(e)}
+    res.redirect('/objects_editor')
+})
+
+router.post('/restaurant_create', async(req, res) => {
+    const splitted = req.body.region.split(':')
+    let coordsStr = splitted[1].split(',')
+    const coords = [parseFloat(coordsStr[0]), parseFloat(coordsStr[1])]
+    let reg = {
+        title: splitted[0],
+        coordinates: coords,
+        iso3166: splitted[2],
+    }
+    const restaurant = Restaurant({
+        title: req.body.title,
+        region: reg,
+        description: req.body.description
+    })
+    await restaurant.save()
+    res.redirect('/objects_editor')
+})
+
+router.post('/restaurant_delete', async(req, res) => {
+    const checkers = Array.isArray(req.body.checked) ? req.body.checked : Array.of(req.body.checked)
+    for (const id of checkers) {
+        try {
+            await Restaurant.deleteOne({ _id : new mongo.ObjectID(id)})
+        } catch (e) {console.log(e)}
+    }
     res.redirect('/objects_editor')
 })
 

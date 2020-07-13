@@ -27,6 +27,10 @@ const schema = new Schema({
             }
         ]
     },
+    restaurants: {
+        type: Array,
+        default: []
+    },
     description: {
         type: String,
         required: false

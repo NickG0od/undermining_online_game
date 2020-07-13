@@ -21,7 +21,9 @@
         {{#each products}}
         <div class="col-sm-3 mb-3 card-wrapper" value="{{ type }}">
             <div class="card card-product" id="{{ _id }}">
-                <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                <div style="width:100%; padding-top: 100%; position: relative;">
+                    <img class="card-img-top" style="position: absolute; top: 0; left: 0; bottom: 0; right: 0;" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                </div>
                 <div class="card-body">
                     <h4 class="card-title">{{ title }}</h4>
                     {{#each regions}}
@@ -46,7 +48,24 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p id="descriptionText">Modal body text goes here.</p>
+                <p id="descriptionText"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Показать описание ресторана: -->
+<div class="modal fade" id="showRestaurantModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ресторан</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="title_restaurant_modal"></p>
+                <p id="description_restaurant_modal"></p>
             </div>
         </div>
     </div>
@@ -108,7 +127,7 @@
                             isCirclePointer = true;
                         }
                         else {
-                            myMap.setCenter ([55.755, 37.619], 7);
+                            myMap.setCenter ([64.091, 81.822], 3);
                             myMap.geoObjects.remove(circlePointer);
                             isCirclePointer = false;
                         }
@@ -270,6 +289,14 @@ $(document).ready(function() {
     // Нажатие на кнопку "Подробнее" в карточке
     $('.card-link').click(function() {
         $('#descriptionText').text( $(this).attr("value") );
+    });
+    // Нажатие на кнопку "Ресторан" на карте
+    $('.restaurant-open-modal').click(function() {
+        console.log("ssss")
+        console.log( $(this).attr("id") )
+    });
+    $('#showRestaurantModal').on('shown', function() {
+        alert("I want this to appear after the modal has opened!");
     });
 });
 </script>

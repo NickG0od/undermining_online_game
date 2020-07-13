@@ -39,6 +39,41 @@
 <p>[ В БД нет продуктов ]</p>
 <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
 {{/if}}
+
+<h4 style="margin: 1rem;">Рестораны:</h4>
+{{#if restaurants.length}}
+<form id="showing_restaurants">
+<table class="table table-sm table-hover">
+    <thead>
+        <tr class="table-info">
+            <th scope="col">#</th>
+            <th scope="col">Название</th>
+             <th scope="col">Регион</th>
+            <th scope="col">Координаты</th>
+            <th scope="col">Описание</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each restaurants}}
+        <tr>
+            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+            <td>{{ title }}</td>
+            <td>{{ region.title }}</td>
+            <td>{{ region.coordinates }}</td>
+            <td>{{ description }}</td>
+        
+            <input type="hidden" value="{{_id}}" name="id">
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+<button type="button" class="btn btn-outline-dark" id="create_restaurant" data-toggle="modal" data-target="#createRestaurantModal">Создать</button>
+<button type="reset" class="btn btn-outline-dark" id="delete_restaurants">Удалить</button>
+</form>
+{{else}}
+<p>[ В БД нет ресторанов ]</p>
+<button type="button" class="btn btn-outline-dark" id="create_restaurant" data-toggle="modal" data-target="#createRestaurantModal">Создать</button>
+{{/if}}
 <!-- Modals -->
 <!-- Создание продукта -->
 <div class="modal fade" id="createProductModal" tabindex="-1" role="dialog" aria-labelledby="createProductModalLabel" aria-hidden="true">
@@ -81,6 +116,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group restaurants-picker">
+                        <label for="listOfRestaurants">Рестораны</label>
+                        <select class="selectpicker" id="listOfRestaurants" data-live-search="true" data-actions-box="true" name="restaurants" multiple>
+                            {{#each restaurants}}
+                            <option value="{{ _id }}">{{ title }}</option>
+                            {{/each}} 
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="imageUpload">Загрузите фото объекта</label>
                         <input type="file" class="form-control-file" id="imageUpload" name="image">
@@ -116,8 +159,8 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="map">Местоположение на карте</label>
-                    <div id="map" style="width: 700px; height: 400px; padding: 0; margin: 0;" aria-describedby="coordHelp"></div>
+                    <label for="mapForObject">Местоположение на карте</label>
+                    <div id="mapForObject" style="width: 700px; height: 400px; padding: 0; margin: 0;" aria-describedby="coordHelp"></div>
                     <small id="coordHelp" class="form-text text-muted">По умолчанию позиция = [0, 0].</small>
                 </div>
                 <div>
@@ -137,18 +180,56 @@
         </div>
     </div>
 </div>
+<!-- Создание ресторана -->
+<div class="modal fade" id="createRestaurantModal" tabindex="-1" role="dialog" aria-labelledby="createRestaurantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRestaurantModalLabel">Создание ресторана</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="/restaurant_create" method="POST" id="creatingRestaurant">
+                    <div class="form-group row">
+                        <div class="col">
+                            <label for="nameOfRestaurant">Название</label>
+                            <input type="text" class="form-control" id="nameOfRestaurant" name="title" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mapForRestaurant">Местоположение на карте</label>
+                        <div id="mapForRestaurant" style="width: 600px; height: 300px; padding: 0; margin: 0;" aria-describedby="coordsRestaurantHelp">
+                             <input id="coordsForRestaurant" type="hidden" value=":55.755, 37.619:" name="region">
+                        </div>
+                        <small id="coordsRestaurantHelp" class="form-text text-muted">По умолчанию: 55.755, 37.619</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="descriptionRestaurant">Описание</label>
+                        <input type="text" class="form-control" id="descriptionRestaurant" name="description">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="creatingRestaurant">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
 <script src="/js/jquery-3.5.1.js"></script>
 <script type="text/javascript">
-    var coords = [0, 0];
+    var coordsObj = [0, 0];
     var firstGeoObject = "";
     ymaps.ready(init);
 
     function init() {
         let myPlacemark;
-        let myMap = new ymaps.Map("map", {
+        let myMap = new ymaps.Map("mapForObject", {
             center: [55.755, 37.619],
             zoom: 9
         }, {
@@ -159,19 +240,18 @@
         });
 
         myMap.events.add('click', function (e) {
-            coords = e.get('coords');
+            coordsObj = e.get('coords');
             if (myPlacemark) {
-                myPlacemark.geometry.setCoordinates(coords);
+                myPlacemark.geometry.setCoordinates(coordsObj);
             }
             else {
-                myPlacemark = createPlacemark(coords);
-                console.log(coords)
+                myPlacemark = createPlacemark(coordsObj);
                 myMap.geoObjects.add(myPlacemark);
                 myPlacemark.events.add('dragend', function () {
                     getAddress(myPlacemark.geometry.getCoordinates());
                 });
             }
-            getAddress(coords);
+            getAddress(coordsObj);
         });
 
         function createPlacemark(coords) {
@@ -195,15 +275,80 @@
         }
     }
 </script>
+<script type="text/javascript">
+    var coordsRestaurant = [0, 0];
+    var firstGeoObject = "";
+    ymaps.ready(init);
+
+    function init() {
+        let myPlacemark;
+        let myMap = new ymaps.Map("mapForRestaurant", {
+            center: [55.755, 37.619],
+            zoom: 9
+        }, {
+            restrictMapArea: [
+                [85, -179],
+                [-65, 179]
+            ]
+        });
+
+        myMap.events.add('click', function (e) {
+            coordsRestaurant = e.get('coords');
+
+            if (myPlacemark) {
+                myPlacemark.geometry.setCoordinates(coordsRestaurant)
+            }
+            else {
+                myPlacemark = createPlacemark(coordsRestaurant);
+                myMap.geoObjects.add(myPlacemark);
+                myPlacemark.events.add('dragend', function () {
+                    getAddress(myPlacemark.geometry.getCoordinates());
+                });
+            }
+            getAddress(coordsRestaurant);
+        });
+
+        function createPlacemark(coords) {
+            return new ymaps.Placemark(coords, {
+                iconCaption: 'поиск...'
+            }, {
+                preset: 'islands#violetDotIconWithCaption',
+                draggable: true
+            });
+        }
+
+        function getAddress(coords) {
+            myPlacemark.properties.set('iconCaption', 'поиск...');
+            ymaps.geocode(coords).then(function (res) {
+                firstGeoObject = res.geoObjects.get(0);
+                myPlacemark.properties.set({
+                    iconCaption: "Точка выбрана.",
+                    balloonContent: firstGeoObject.getAddressLine()
+                });
+
+                let value = "";
+                let region = "";
+                if (firstGeoObject != "") {
+                    const arrayOfStrings = firstGeoObject.getAddressLine().split(", ");
+                    if (arrayOfStrings.length > 1) {region += arrayOfStrings[1];}
+                    else {region = arrayOfStrings[0];}
+                }
+                value += region + ":" + coordsRestaurant + ":" + GetISO3166ByReg(region);
+                let mapElem = document.getElementById("coordsForRestaurant");
+                mapElem.setAttribute("value", value);
+
+            });
+        }
+    }
+</script>
 <script>
     function GetISO3166ByReg(region) {
         const decodedJson = decodeURIComponent("{{{dataCodeRegs}}}");
         const jsonObj = JSON.parse(decodedJson);
         for (let i=0; i<jsonObj.length; i++) {
-            let r = "";
             if (region.toLowerCase().indexOf(jsonObj[i].title.toLowerCase()) !== -1) {
                 return jsonObj[i].iso3166;
-            } 
+            }
         }
         return "NULL";
     }
@@ -212,6 +357,24 @@
         let data = $('#showing_products').serialize();
         try {
             const response = await fetch('/obj_delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: data
+            });
+            const status = await response.ok;
+            window.location.reload(false);
+            return;
+        } catch (error) {
+            console.error('error: ', error);
+        }
+    });
+
+    $('#delete_restaurants').click(async function() {
+        let data = $('#showing_restaurants').serialize();
+        try {
+            const response = await fetch('/restaurant_delete', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -251,7 +414,7 @@
             regions: [
                 {
                     title: region,
-                    coordinates: coords,
+                    coordinates: coordsObj,
                     iso3166: GetISO3166ByReg(region)
                 }
             ],
@@ -276,6 +439,7 @@
     });
 
 
+
     function setHelperText() {
         let typeStr = "";
         switch( $('#typeOfProduct').val() ) {
@@ -297,10 +461,24 @@
         $('#regHelp').text(`Введите регион, в котором находится ${typeStr}.`);
         $('#cookTypeHelp').text(`Введите тип кухни, к которому относится ${typeStr}.`);
     }
+    function showSelectOfRestaurants() {
+        if ($('#typeOfProduct').val() == "dish") {
+            $('.restaurants-picker').show();
+        } else {
+            $('.restaurants-picker').find('select').val('default');
+            $('.restaurants-picker').hide();
+        }
+    }
+
+    function typeOfObjHandler() {
+        setHelperText();
+        showSelectOfRestaurants();
+
+    }
 
     $(document).ready(function() {
-        setHelperText();
-        $('#typeOfProduct').change(function() { setHelperText() });
+        typeOfObjHandler();
+        $('#typeOfProduct').change(function() {typeOfObjHandler()});
 
         let path = $('.dropdown-menu a:first-child').find('img').attr("src");
         $('#iconPathProduct').val(path);

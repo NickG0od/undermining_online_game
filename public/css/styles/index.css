@@ -5,3 +5,10 @@
 .card-choosen {
     border: 5px dashed black !important;
 }
+
+
+.restaurant-open-modal:hover {
+    cursor: pointer;
+    color: blue !important;
+    text-decoration: underline !important;
+}
