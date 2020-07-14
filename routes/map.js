@@ -79,34 +79,37 @@ router.get('/', async (req, res) => {
             dataStr: ""
         }}
 
-        let elemOfMap = {
-            type: "Feature",
-            id: id_num,
-            id_glob: products[i]._id,
-            iso3166: products[i].regions[0].iso3166,
-            geometry: {
-                type: "Point",
-                coordinates: products[i].regions[0].coordinates,
-            },
-            options: {
-                iconLayout: "default#image",
-                iconImageHref: `${products[i].icon_path}`,
-                iconImageSize: [24, 24],
-                iconImageOffset: [-12, -12]
-            },
-            properties: {
-                balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
-                balloonContentFooter: `<p>Регион: ${products[i].regions[0].title}</p>`,
-                clusterCaption: `<p>- ${products[i].title}</p>`,
-                hintContent: `<strong>${products[i].title}</strong>`              
+        let elemOfMap = null;
+        if (typeof products[i].regions[0].coordinates !== 'undefined' && products[i].regions[0].coordinates.length > 0) {
+            id_num ++;
+            elemOfMap = {
+                type: "Feature",
+                id: id_num,
+                id_glob: products[i]._id,
+                iso3166: products[i].regions[0].iso3166,
+                geometry: {
+                    type: "Point",
+                    coordinates: products[i].regions[0].coordinates,
+                },
+                options: {
+                    iconLayout: "default#image",
+                    iconImageHref: `${products[i].icon_path}`,
+                    iconImageSize: [24, 24],
+                    iconImageOffset: [-12, -12]
+                },
+                properties: {
+                    balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
+                    balloonContentFooter: `<p>Регион: ${products[i].regions[0].title}</p>`,
+                    clusterCaption: `<p>- ${products[i].title}</p>`,
+                    hintContent: `<strong>${products[i].title}</strong>`              
+                }
             }
         }
-
+        
         let dataFromRestaurants = [];
         try {
             products[i].restaurants.forEach(elem => {
                 try {
-                    let counter = 0;
                     restaurants.forEach(restaurant => {
                         if (elem == restaurant._id) {
                             id_num ++;
@@ -135,7 +138,6 @@ router.get('/', async (req, res) => {
                                 }
                             )
                         }
-                        counter ++;
                     })
                 } catch (e) {console.log(e)}
             })
@@ -143,7 +145,7 @@ router.get('/', async (req, res) => {
 
         arrayTypes.forEach(elem => {
             if (products[i].type == elem && elem != "all") {
-                dataMap[elem].features.push(elemOfMap)
+                if (elemOfMap != null) {dataMap[elem].features.push(elemOfMap)}
                 try {
                     dataFromRestaurants.forEach(restaurant => {
                         dataMap[elem].features.push(restaurant)
@@ -151,7 +153,7 @@ router.get('/', async (req, res) => {
                 } catch(e) {console.log(e)}
             }
         })
-        dataMap["all"].features.push(elemOfMap)
+        if (elemOfMap != null) {dataMap["all"].features.push(elemOfMap)}
         try {
             dataFromRestaurants.forEach(restaurant => {
                 dataMap["all"].features.push(restaurant)
@@ -164,7 +166,6 @@ router.get('/', async (req, res) => {
                 dataColorRegs[ products[i].regions[0].iso3166 ]['types'].push( products[i].type )
             }
         }
-        id_num ++;
     }
 
     let dataColors = {}
@@ -200,29 +201,6 @@ router.get('/', async (req, res) => {
         products,
         partners,
         dataRegPartners: encodeURIComponent(JSON.stringify(dataPartners))
-    })
-})
-
-router.get('/partners', async (req, res) => {
-    const partners = await Partner.find({}).lean()
-    if (partners.length) {
-        for (let i=0; i<partners.length; i++) {
-            try {
-                if (partners[i].img.data) {
-                    partners[i].img.dataStr = partners[i].img.data.toString('base64')
-                }
-            } catch (e) { partners[i].img = {
-                data: "",
-                contentType: 'null',
-                dataStr: ""
-            }}
-        }
-    }
-
-    res.render('partners', {
-        title: 'Участники проекта',
-        isPartners: true,
-        partners
     })
 })
 
@@ -319,8 +297,8 @@ router.post('/obj_create', upload.single('image'), async (req, res) => {
         regions: [
             {
                 title: req.body.region,
-                coordinates: [55, 35],
-                iso3166: "NO",
+                coordinates: [],
+                iso3166: "",
             }
         ],
         restaurants : restaurants,

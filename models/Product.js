@@ -21,9 +21,9 @@ const schema = new Schema({
         type: Array,
         default: [
             {
-                title: "Область...",
-                coordinates: [0, 0],
-                iso3166: "RU_DEF"
+                title: "",
+                coordinates: [],
+                iso3166: ""
             }
         ]
     },

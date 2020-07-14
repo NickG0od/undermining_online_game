@@ -15,25 +15,50 @@
     <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
 </div>
 
-<h3 style="margin: 1rem;" id="block">Объекты на карте</h3>
-<div class="container">
-    <div class="row">
-        {{#each products}}
-        <div class="col-sm-3 mb-3 card-wrapper" value="{{ type }}">
-            <div class="card card-product" id="{{ _id }}">
-                <div style="width:100%; padding-top: 100%; position: relative;">
-                    <img class="card-img-top" style="position: absolute; top: 0; left: 0; bottom: 0; right: 0;" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+<div class="container" style="margin: 1rem;">
+    <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#objects">Объекты на карте</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#partners">Регионы-участники</a></li>
+    </ul>
+
+    <div class="tab-content" style="margin: 1rem;">
+        <div id="objects" class="tab-pane active show">
+            <div class="row">
+                {{#each products}}
+                <div class="col-sm-3 mb-3 card-wrapper d-flex align-items-stretch" value="{{ type }}">
+                    <div class="card card-product" id="{{ _id }}">
+                        <div class="card-body">
+                            <div class="img-wrap">
+                                <img class="card-img-top cover" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                            </div>
+                            <h4 class="card-title">{{ title }}</h4>
+                            {{#each regions}}
+                                <p class="card-text">{{ title }}</p>
+                            {{/each}}
+                        </div>
+                        <div class="card-footer">
+                            <a class="btn btn-outline-primary card-link" data-toggle="modal" data-target="#descriptionOfObj" value="{{ description }}">Подробнее</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h4 class="card-title">{{ title }}</h4>
-                    {{#each regions}}
-                        <p class="card-text">{{ title }}</p>
-                    {{/each}}
-                    <a class="btn btn-outline-primary card-link" data-toggle="modal" data-target="#descriptionOfObj" value="{{ description }}">Подробнее</a>
-                </div>
+                {{/each}}
             </div>
         </div>
-        {{/each}}
+        <div id="partners" class="tab-pane fade">
+            <div class="row">
+                {{#each partners}}
+                <div class="col-sm-3 col-md-3 pb-2 mb-2">
+                    <div class="card card-partner" id="{{ _id }}">
+                        <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                        <div class="card-body">
+                            <h4 class="card-title">{{ title }}</h4>
+                            <p class="card-text">{{ description }}</p>
+                        </div>
+                    </div>
+                </div>
+                {{/each}}
+            </div> 
+        </div>
     </div>
 </div>
 <!-- Modals -->
@@ -274,12 +299,12 @@ $(document).ready(function() {
         startYandex("all");
     });
     // Выбор карточки из списка "объекты на карте"
-    $('.card-img-top').click(function () {
+    $('.card-body').click(function () {
         let card = $(this).closest('.card');
         choosenCard = chooseCardHandler(card, choosenCard);
     });
     // Наводка на картинку в карточке
-    $('.card-img-top').hover(function() {
+    $('.card-body').hover(function() {
         let card = $(this).closest('.card');
         card.addClass("card-hoverable");
     }, function() {
@@ -289,14 +314,6 @@ $(document).ready(function() {
     // Нажатие на кнопку "Подробнее" в карточке
     $('.card-link').click(function() {
         $('#descriptionText').text( $(this).attr("value") );
-    });
-    // Нажатие на кнопку "Ресторан" на карте
-    $('.restaurant-open-modal').click(function() {
-        console.log("ssss")
-        console.log( $(this).attr("id") )
-    });
-    $('#showRestaurantModal').on('shown', function() {
-        alert("I want this to appear after the modal has opened!");
     });
 });
 </script>
