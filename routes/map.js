@@ -80,6 +80,7 @@ router.get('/', async (req, res) => {
         }}
 
         let elemOfMap = null;
+        let elemOfMapWithoutType = null;
         if (typeof products[i].regions[0].coordinates !== 'undefined' && products[i].regions[0].coordinates.length > 0) {
             id_num ++;
             elemOfMap = {
@@ -98,15 +99,24 @@ router.get('/', async (req, res) => {
                     iconImageOffset: [-12, -12]
                 },
                 properties: {
-                    balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
+                    balloonContentBody: `<p>${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
                     balloonContentFooter: `<p>Регион: ${products[i].regions[0].title}</p>`,
                     clusterCaption: `<p>- ${products[i].title}</p>`,
                     hintContent: `<strong>${products[i].title}</strong>`              
                 }
             }
+
+            elemOfMapWithoutType = JSON.parse(JSON.stringify(elemOfMap))
+            elemOfMapWithoutType.properties = {
+                balloonContentBody: `<p>${products[i].title}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p>`,
+                balloonContentFooter: `<p>Регион: ${products[i].regions[0].title}</p>`,
+                clusterCaption: `<p>- ${products[i].title}</p>`,
+                hintContent: `<strong>${products[i].title}</strong>`
+            }
         }
         
         let dataFromRestaurants = [];
+        let dataFromRestaurantsWithoutType = [];
         try {
             products[i].restaurants.forEach(elem => {
                 try {
@@ -130,7 +140,31 @@ router.get('/', async (req, res) => {
                                         iconImageOffset: [-12, -12]
                                     },
                                     properties: {
-                                        balloonContentBody: `<p>Название: ${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p><p>Готовится в ресторане:<a class="restaurant-open-modal" id=${restaurant._id} data-toggle="modal" data-target="#showRestaurantModal">${restaurant.title}</a></p>`,
+                                        balloonContentBody: `<p>${products[i].title}</p><p>Тип: ${products[i].typeRU}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p><p>Готовится в ресторане:<a class="restaurant-open-modal" id=${restaurant._id} data-toggle="modal" data-target="#showRestaurantModal">${restaurant.title}</a></p>`,
+                                        balloonContentFooter: `<p>Регион: ${restaurant.region.title}</p>`,
+                                        clusterCaption: `<p>- ${products[i].title}</p>`,
+                                        hintContent: `<strong>${products[i].title}</strong>`              
+                                    }
+                                }
+                            )
+                            dataFromRestaurantsWithoutType.push (
+                                {
+                                    type: "Feature",
+                                    id: id_num,
+                                    id_glob: restaurant._id,
+                                    iso3166: restaurant.region.iso3166,
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: restaurant.region.coordinates,
+                                    },
+                                    options: {
+                                        iconLayout: "default#image",
+                                        iconImageHref: `${products[i].icon_path}`,
+                                        iconImageSize: [24, 24],
+                                        iconImageOffset: [-12, -12]
+                                    },
+                                    properties: {
+                                        balloonContentBody: `<p>${products[i].title}</p><img src="data:image/${products[i].img.contentType}; base64, ${products[i].img.dataStr}" style="max-width: 70px;" onerror="this.src = 'images/default.png'; this.onerror = null;"> <p>${products[i].description}</p><p>Готовится в ресторане:<a class="restaurant-open-modal" id=${restaurant._id} data-toggle="modal" data-target="#showRestaurantModal">${restaurant.title}</a></p>`,
                                         balloonContentFooter: `<p>Регион: ${restaurant.region.title}</p>`,
                                         clusterCaption: `<p>- ${products[i].title}</p>`,
                                         hintContent: `<strong>${products[i].title}</strong>`              
@@ -145,9 +179,9 @@ router.get('/', async (req, res) => {
 
         arrayTypes.forEach(elem => {
             if (products[i].type == elem && elem != "all") {
-                if (elemOfMap != null) {dataMap[elem].features.push(elemOfMap)}
+                if (elemOfMapWithoutType != null) {dataMap[elem].features.push(elemOfMapWithoutType)}
                 try {
-                    dataFromRestaurants.forEach(restaurant => {
+                    dataFromRestaurantsWithoutType.forEach(restaurant => {
                         dataMap[elem].features.push(restaurant)
                     })
                 } catch(e) {console.log(e)}

@@ -11,6 +11,11 @@
     </div>
 </div>
 
+<div class="checkbox ml-4 mb-2" id="showPartnersOnMap" >
+    <input id="toggler" type="checkbox" data-toggle="toggle" data-on="ВКЛ" data-off="ВЫКЛ" checked>
+    <label for="toggler" id="toggler_label">Показывать регионов-участников на карте</label>
+</div>
+
 <div class="container">
     <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
 </div>
@@ -20,7 +25,6 @@
         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#objects">Объекты на карте</a></li>
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#partners">Регионы-участники</a></li>
     </ul>
-
     <div class="tab-content" style="margin: 1rem;">
         <div id="objects" class="tab-pane active show">
             <div class="row">
@@ -45,7 +49,7 @@
             </div>
         </div>
         <div id="partners" class="tab-pane fade">
-            <div class="row">
+            <div class="row" style="margin: 1rem;">
                 {{#each partners}}
                 <div class="col-sm-3 col-md-3 pb-2 mb-2">
                     <div class="card card-partner" id="{{ _id }}">
@@ -104,7 +108,7 @@
     let choosenCard = null;
 
     function startYandex(url) {
-        filterObjects(url)
+        filterObjects(url);
 
         ymaps.ready(init);
         function init() {
@@ -160,6 +164,22 @@
                 }
             }
 
+            const tooglePartnersOnMap = document.getElementById("showPartnersOnMap");
+            tooglePartnersOnMap.onclick = function(e) {
+                if (e.target.id != "toggler" && e.target.id != "toggler_label" && e.target.id !="showPartnersOnMap") {
+                    let elem = e.target.parentElement.parentElement
+                    if (! elem.classList.contains("off")) {
+                        for (let i=0; i<geoObjectPartners.length; i++) {
+                            myMap.geoObjects.remove(geoObjectPartners[i]);
+                        }
+                    } else {
+                        for (let i=0; i<geoObjectPartners.length; i++) {
+                            myMap.geoObjects.add(geoObjectPartners[i]);
+                        }
+                    }
+                }
+            }
+
             let isCirclePointer = false;
             myMap.events.add('boundschange', function(e) {
                 if (isCirclePointer) {
@@ -169,12 +189,14 @@
                 }
             });
 
+            let geoObjectPartners = [];
             function ColorAndPartnerRegs(data) {
                 ymaps.borders.load('RU', {
                 lang: "ru",
                 quality: 2
                 }).then(function (geojson) {
                     for (let i=0; i<geojson.features.length; i++) {
+                        // Покраска регионов, входящие в какие-лтбо кухни
                         if (data[geojson.features[i].properties.iso3166]) {
                             let properties= geojson.features[i].properties;
                             properties.hintContent = '';
@@ -190,7 +212,7 @@
                             });
                             myMap.geoObjects.add(geoObject);
                         }
-                        // Штриховка:
+                        // Штриховка регионов участников
                         const decodedJson = decodeURIComponent("{{{dataRegPartners}}}");
                         const jsonObj = JSON.parse(decodedJson);
                         if (jsonObj) {
@@ -207,7 +229,10 @@
                                         fillColor: '#ffffff',
                                         fillOpacity: 0.3
                                     });
-                                    myMap.geoObjects.add(geoObject);
+                                    if (! tooglePartnersOnMap.firstElementChild.classList.contains("off")) {
+                                        myMap.geoObjects.add(geoObject);
+                                    }
+                                    geoObjectPartners.push(geoObject)
                                 }
                             }
                         }
@@ -229,7 +254,6 @@
                 dataMarks = data;
                 objectManagerMarks.add(dataMarks);
             });
-
             $.ajax({
                 url: `/data/dynamic/dataRegColors_${url}.json`
             }).done(function(data) {
@@ -270,9 +294,10 @@ function chooseCardHandler(obj, choosen) {
     return choosen;
 }
 
+
 $(document).ready(function() {
     choosenCard = chooseCardHandler(null, choosenCard);
-    startYandex("product");
+    startYandex("all");
     $('#productType').click(function() {
         if (myMap) {myMap.destroy();}
         choosenCard = chooseCardHandler(null, choosenCard);
@@ -315,5 +340,6 @@ $(document).ready(function() {
     $('.card-link').click(function() {
         $('#descriptionText').text( $(this).attr("value") );
     });
+    // Открытие панели с информацией о ресторане
 });
 </script>
