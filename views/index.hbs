@@ -1,26 +1,27 @@
-<h3 style="margin: 1rem;">Гастрономическая карта</h3>
-<div class="btn-toolbar justify-content-between mb-2 mt-2" role="toolbar" aria-label="Map's type">
-    <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-primary" id="productType">Продукты</button>
-        <button type="button" class="btn btn-outline-primary" id="dishType">Блюда</button>
-        <button type="button" class="btn btn-outline-primary" id="wildPlantType">Дикоросы</button>
-        <button type="button" class="btn btn-outline-primary" id="fishType">Рыба</button>
+<div class="container mt-2">
+    <h3>Гастрономическая карта</h3>
+    <div class="btn-toolbar justify-content-between mb-2 mt-2" role="toolbar" aria-label="Map's type">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" id="productType">Продукты</button>
+            <button type="button" class="btn btn-outline-primary" id="dishType">Блюда</button>
+            <button type="button" class="btn btn-outline-primary" id="wildPlantType">Дикоросы</button>
+            <button type="button" class="btn btn-outline-primary" id="fishType">Рыба</button>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" id="allType">Вся карта</button>
+        </div>
     </div>
-    <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-primary" id="allType">Вся карта</button>
+    <div class="checkbox" id="showPartnersOnMap" >
+        <input id="toggler" type="checkbox" data-toggle="toggle" data-size="small" data-on="ВКЛ" data-off="ВЫКЛ" checked>
+        <label for="toggler" id="toggler_label">Регионы-участники проекта</label>
     </div>
 </div>
 
-<div class="checkbox ml-4 mb-2" id="showPartnersOnMap" >
-    <input id="toggler" type="checkbox" data-toggle="toggle" data-on="ВКЛ" data-off="ВЫКЛ" checked>
-    <label for="toggler" id="toggler_label">Показывать регионов-участников на карте</label>
-</div>
-
-<div class="container">
+<div class="container mt-2">
     <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
 </div>
 
-<div class="container" style="margin: 1rem;">
+<div class="container mt-2">
     <ul class="nav nav-tabs">
         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#objects">Объекты на карте</a></li>
         <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#partners">Регионы-участники</a></li>
@@ -29,7 +30,7 @@
         <div id="objects" class="tab-pane active show">
             <div class="row">
                 {{#each products}}
-                <div class="col-sm-3 mb-3 card-wrapper d-flex align-items-stretch" value="{{ type }}">
+                <div class="col-6 col-sm-4 col-lg-3 mb-3 card-wrapper" value="{{ type }}">
                     <div class="card card-product" id="{{ _id }}">
                         <div class="card-body">
                             <div class="img-wrap">
@@ -40,7 +41,7 @@
                                 <p class="card-text">{{ title }}</p>
                             {{/each}}
                         </div>
-                        <div class="card-footer">
+                        <div class="card-footer text-center">
                             <a class="btn btn-outline-primary card-link" data-toggle="modal" data-target="#descriptionOfObj" value="{{ description }}">Подробнее</a>
                         </div>
                     </div>
@@ -49,11 +50,13 @@
             </div>
         </div>
         <div id="partners" class="tab-pane fade">
-            <div class="row" style="margin: 1rem;">
+            <div class="row">
                 {{#each partners}}
-                <div class="col-sm-3 col-md-3 pb-2 mb-2">
+                <div class="col-6 col-sm-4 col-lg-3 mb-3">
                     <div class="card card-partner" id="{{ _id }}">
-                        <img class="card-img-top" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                        <div class="img-wrap">
+                            <img class="card-img-top cover" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
+                        </div>
                         <div class="card-body">
                             <h4 class="card-title">{{ title }}</h4>
                             <p class="card-text">{{ description }}</p>
@@ -116,7 +119,8 @@
 
             myMap = new ymaps.Map("map", {
                 center: [64.091, 81.822],
-                zoom: 3
+                zoom: 3,
+                controls: ['smallMapDefaultSet']
             }, {
                 restrictMapArea: [
                     [85, -179],

@@ -1,79 +1,82 @@
-<h4 style="margin: 1rem;">Список всех объектов (продуктов, блюд, дикоросов, рыб)</h4>
-
-{{#if products.length}}
-<form id="showing_products">
-<table class="table table-sm table-hover">
-    <thead>
-        <tr class="table-info">
-            <th scope="col">#</th>
-            <th scope="col">Название</th>
-            <th scope="col">Тип</th>
-            <th scope="col">Описание</th>
-            <th scope="col">Регион</th>
-            <th scope="col">Координаты</th>
-            <th scope="col">-</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{#each products}}
-        <tr>
-            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
-            <td>{{ title }}</td>
-            <td>{{ typeRU }}</td>
-            <td>{{ description }}</td>
-            {{#each regions}}
-            <td>{{ title }}</td>
-            <td>{{ coordinates }}</td>
+<div class="container mt-2">
+    <h4>Список всех объектов (продуктов, блюд, дикоросов, рыб)</h4>
+    {{#if products.length}}
+    <form id="showing_products">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr class="table-info">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Тип</th>
+                <th scope="col">Описание</th>
+                <th scope="col">Регион</th>
+                <th scope="col">Координаты</th>
+                <th scope="col">-</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each products}}
+            <tr>
+                <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+                <td>{{ title }}</td>
+                <td>{{ typeRU }}</td>
+                <td>{{ description }}</td>
+                {{#each regions}}
+                <td>{{ title }}</td>
+                <td>{{ coordinates }}</td>
+                {{/each}}
+                <td><button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_product_{{@index}}" data-toggle="modal" data-target="#editProductModal" value="{{_id}}">Изменить</button></td>
+            
+                <input type="hidden" value="{{_id}}" name="id">
+            </tr>
             {{/each}}
-            <td><button type="button" class="btn btn-outline-dark btn-edit-product" id="edit_product_{{@index}}" data-toggle="modal" data-target="#editProductModal" value="{{_id}}">Изменить</button></td>
-        
-            <input type="hidden" value="{{_id}}" name="id">
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
-<button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
-<button type="reset" class="btn btn-outline-dark" id="delete_products">Удалить</button>
-</form>
-{{else}}
-<p>[ В БД нет продуктов ]</p>
-<button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
-{{/if}}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
+    <button type="reset" class="btn btn-outline-dark" id="delete_products">Удалить</button>
+    </form>
+    {{else}}
+    <p>[ В БД нет продуктов ]</p>
+    <button type="button" class="btn btn-outline-dark" id="create_product" data-toggle="modal" data-target="#createProductModal">Создать</button>
+    {{/if}}
+</div>
 
-<h4 style="margin: 1rem;">Рестораны:</h4>
-{{#if restaurants.length}}
-<form id="showing_restaurants">
-<table class="table table-sm table-hover">
-    <thead>
-        <tr class="table-info">
-            <th scope="col">#</th>
-            <th scope="col">Название</th>
-             <th scope="col">Регион</th>
-            <th scope="col">Координаты</th>
-            <th scope="col">Описание</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{#each restaurants}}
-        <tr>
-            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
-            <td>{{ title }}</td>
-            <td>{{ region.title }}</td>
-            <td>{{ region.coordinates }}</td>
-            <td>{{ description }}</td>
-        
-            <input type="hidden" value="{{_id}}" name="id">
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
-<button type="button" class="btn btn-outline-dark" id="create_restaurant" data-toggle="modal" data-target="#createRestaurantModal">Создать</button>
-<button type="reset" class="btn btn-outline-dark" id="delete_restaurants">Удалить</button>
-</form>
-{{else}}
-<p>[ В БД нет ресторанов ]</p>
-<button type="button" class="btn btn-outline-dark" id="create_restaurant" data-toggle="modal" data-target="#createRestaurantModal">Создать</button>
-{{/if}}
+<div class="container mt-2">
+    <h4>Рестораны:</h4>
+    {{#if restaurants.length}}
+    <form id="showing_restaurants">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr class="table-info">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Регион</th>
+                <th scope="col">Координаты</th>
+                <th scope="col">Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each restaurants}}
+            <tr>
+                <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+                <td>{{ title }}</td>
+                <td>{{ region.title }}</td>
+                <td>{{ region.coordinates }}</td>
+                <td>{{ description }}</td>
+            
+                <input type="hidden" value="{{_id}}" name="id">
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-outline-dark" id="create_restaurant" data-toggle="modal" data-target="#createRestaurantModal">Создать</button>
+    <button type="reset" class="btn btn-outline-dark" id="delete_restaurants">Удалить</button>
+    </form>
+    {{else}}
+    <p>[ В БД нет ресторанов ]</p>
+    <button type="button" class="btn btn-outline-dark" id="create_restaurant" data-toggle="modal" data-target="#createRestaurantModal">Создать</button>
+    {{/if}}
+</div>
 <!-- Modals -->
 <!-- Создание продукта -->
 <div class="modal fade" id="createProductModal" tabindex="-1" role="dialog" aria-labelledby="createProductModalLabel" aria-hidden="true">
@@ -231,7 +234,8 @@
         let myPlacemark;
         let myMap = new ymaps.Map("mapForObject", {
             center: [55.755, 37.619],
-            zoom: 9
+            zoom: 9,
+            controls: ['smallMapDefaultSet']
         }, {
             restrictMapArea: [
                 [85, -179],

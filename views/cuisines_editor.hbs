@@ -1,42 +1,43 @@
-<h4 style="margin: 1rem;">Список всех кухонь</h4>
-
-{{#if cuisines.length}}
-<form id="showing_cuisines">
-<table class="table table-sm table-hover">
-    <thead>
-        <tr class="table-info">
-            <th scope="col">#</th>
-            <th scope="col">Название</th>
-            <th scope="col">Цвет</th>
-            <th scope="col">Регионы</th>
-            <th scope="col">-</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{#each cuisines}}
-        <tr>
-            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
-            <td>{{ title }}</td>
-            <td><div class="color-box" style="background-color: {{ color }};">color</div></td>
-            <td>
-                {{#each regions}}
-                <p>{{ title }}</p>
-                {{/each}}
-            </td>
-            <td><button type="button" class="btn btn-outline-dark btn-edit-cuisine" id="edit_cuisine_{{@index}}" data-toggle="modal" data-target="#editCuisineModal" value="{{_id}}">Изменить</button></td>
-        
-            <input type="hidden" value="{{_id}}" name="id">
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
-<button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
-<button type="reset" class="btn btn-outline-dark" id="delete_cuisines">Удалить</button>
-</form>
-{{else}}
-<p>[ БД пуста ]</p>
-<button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
-{{/if}}
+<div class="container mt-2">
+    <h4>Список всех кухонь</h4>
+    {{#if cuisines.length}}
+    <form id="showing_cuisines">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr class="table-info">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Цвет</th>
+                <th scope="col">Регионы</th>
+                <th scope="col">-</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each cuisines}}
+            <tr>
+                <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+                <td>{{ title }}</td>
+                <td><div class="color-box" style="background-color: {{ color }};">color</div></td>
+                <td>
+                    {{#each regions}}
+                    <p>{{ title }}</p>
+                    {{/each}}
+                </td>
+                <td><button type="button" class="btn btn-outline-dark btn-edit-cuisine" id="edit_cuisine_{{@index}}" data-toggle="modal" data-target="#editCuisineModal" value="{{_id}}">Изменить</button></td>
+            
+                <input type="hidden" value="{{_id}}" name="id">
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
+    <button type="reset" class="btn btn-outline-dark" id="delete_cuisines">Удалить</button>
+    </form>
+    {{else}}
+    <p>[ БД пуста ]</p>
+    <button type="button" class="btn btn-outline-dark" id="create_cuisine" data-toggle="modal" data-target="#createCuisineModal">Создать</button>
+    {{/if}}
+</div>
 <!-- Modals -->
 <!-- Создание кухни -->
 <div class="modal fade" id="createCuisineModal" tabindex="-1" role="dialog" aria-labelledby="createCuisineModalLabel" aria-hidden="true">

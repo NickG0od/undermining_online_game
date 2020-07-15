@@ -1,38 +1,39 @@
-<h4 style="margin: 1rem;">Список всех партнёров</h4>
-
-{{#if partners.length}}
-<form id="showing_partners">
-<table class="table table-sm table-hover">
-    <thead>
-        <tr class="table-info">
-            <th scope="col">#</th>
-            <th scope="col">Название</th>
-            <th scope="col">Картинка</th>
-            <th scope="col">Описание</th>
-            <th scope="col">-</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{#each partners}}
-        <tr>
-            <td><input type="checkbox" value="{{_id}}" name="checked"></td>
-            <td>{{ title }}</td>
-            <td><img class="card-img-top" style="max-width: 20%;" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> </td>
-            <td>{{ description }}</td>
-            <td><button type="button" class="btn btn-outline-dark btn-edit-partner" id="edit_partner_{{@index}}" data-toggle="modal" data-target="#editPartnerModal" value="{{_id}}">Изменить</button></td>
-        
-            <input type="hidden" value="{{_id}}" name="id">
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
-<button type="button" class="btn btn-outline-dark" id="create_partner" data-toggle="modal" data-target="#createPartnerModal">Создать</button>
-<button type="reset" class="btn btn-outline-dark" id="delete_partners">Удалить</button>
-</form>
-{{else}}
-<p>[ БД пуста ]</p>
-<button type="button" class="btn btn-outline-dark" id="create_partner" data-toggle="modal" data-target="#createPartnerModal">Создать</button>
-{{/if}}
+<div class="container mt-2">
+    <h4>Список всех партнёров</h4>
+    {{#if partners.length}}
+    <form id="showing_partners">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr class="table-info">
+                <th scope="col">#</th>
+                <th scope="col">Название</th>
+                <th scope="col">Картинка</th>
+                <th scope="col">Описание</th>
+                <th scope="col">-</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each partners}}
+            <tr>
+                <td><input type="checkbox" value="{{_id}}" name="checked"></td>
+                <td>{{ title }}</td>
+                <td><img class="card-img-top" style="max-width: 20%;" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> </td>
+                <td>{{ description }}</td>
+                <td><button type="button" class="btn btn-outline-dark btn-edit-partner" id="edit_partner_{{@index}}" data-toggle="modal" data-target="#editPartnerModal" value="{{_id}}">Изменить</button></td>
+            
+                <input type="hidden" value="{{_id}}" name="id">
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-outline-dark" id="create_partner" data-toggle="modal" data-target="#createPartnerModal">Создать</button>
+    <button type="reset" class="btn btn-outline-dark" id="delete_partners">Удалить</button>
+    </form>
+    {{else}}
+    <p>[ БД пуста ]</p>
+    <button type="button" class="btn btn-outline-dark" id="create_partner" data-toggle="modal" data-target="#createPartnerModal">Создать</button>
+    {{/if}}
+</div>
 <!-- Modals -->
 <!-- Создание партнёра -->
 <div class="modal fade" id="createPartnerModal" tabindex="-1" role="dialog" aria-labelledby="createPartnerModalLabel" aria-hidden="true">
