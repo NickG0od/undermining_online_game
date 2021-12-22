@@ -4,12 +4,17 @@ const path = require('path')
 const exphbs = require('express-handlebars')
 const Handlebars  = require('handlebars')
 const cookieParser = require('cookie-parser')
+const cors = require("cors")
 
 const mainRoute = require('./routes/main')
 
 const PORT = process.env.PORT || 3000
 const mongoDB = 'mongodb+srv://admin:XkNWMUxX57LNp184@cluster0.cechz.mongodb.net/undermining?retryWrites=true&w=majority';
 
+const corsOptions = {
+    origin: '*',
+    optionsSuccessStatus: 200
+}
 
 const app = express()
 const hbs = exphbs.create({
@@ -29,6 +34,8 @@ app.use(cookieParser())
 app.use(express.urlencoded({ extended:true }))
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
+
+app.use(cors(corsOptions));
 
 app.use(mainRoute)
 
