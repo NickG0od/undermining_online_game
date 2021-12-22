@@ -2,11 +2,13 @@ const express = require('express')
 const mongoose = require('mongoose')
 const path = require('path')
 const exphbs = require('express-handlebars')
+const Handlebars  = require('handlebars')
+const cookieParser = require('cookie-parser')
 
-const mainRoute = require('./routes/map')
+const mainRoute = require('./routes/main')
 
 const PORT = process.env.PORT || 3000
-const mongoDB = 'mongodb+srv://freequx:1f2r3e4e@cluster0.gwkxc.gcp.mongodb.net/products'
+const mongoDB = 'mongodb+srv://admin:XkNWMUxX57LNp184@cluster0.cechz.mongodb.net/undermining?retryWrites=true&w=majority';
 
 
 const app = express()
@@ -19,6 +21,11 @@ app.engine('hbs', hbs.engine)
 app.set('view engine', 'hbs')
 app.set('views', 'views')
 
+Handlebars.registerHelper('ifEquals', function(arg1, arg2, options) {
+    return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+});
+
+app.use(cookieParser())
 app.use(express.urlencoded({ extended:true }))
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
@@ -34,7 +41,7 @@ async function start() {
         })
 
         app.listen(PORT, () => {
-            console.log("\n[!] Server has been started...")
+            console.log(`\n[!] Server has been started at port ${PORT}...`)
         });
     } catch (e) {
         console.log(e);

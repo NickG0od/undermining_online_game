@@ -1,349 +1,371 @@
 <div class="container mt-2">
-    <h3>Гастрономическая карта</h3>
-    <div class="btn-toolbar justify-content-between mb-2 mt-2" role="toolbar" aria-label="Map's type">
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-primary" id="productType">Продукты</button>
-            <button type="button" class="btn btn-outline-primary" id="dishType">Блюда</button>
-            <button type="button" class="btn btn-outline-primary" id="wildPlantType">Дикоросы</button>
-            <button type="button" class="btn btn-outline-primary" id="fishType">Рыба</button>
-        </div>
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-primary" id="allType">Вся карта</button>
-        </div>
-    </div>
-    <div class="checkbox" id="showPartnersOnMap" >
-        <input id="toggler" type="checkbox" data-toggle="toggle" data-size="small" data-on="ВКЛ" data-off="ВЫКЛ" checked>
-        <label for="toggler" id="toggler_label">Регионы-участники проекта</label>
-    </div>
-</div>
-
-<div class="container mt-2">
-    <div id="map" style="height: 500px; padding: 0; margin: 0;"></div>
-</div>
-
-<div class="container mt-2">
-    <ul class="nav nav-tabs">
-        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#objects">Объекты на карте</a></li>
-        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#partners">Регионы-участники</a></li>
-    </ul>
-    <div class="tab-content" style="margin: 1rem;">
-        <div id="objects" class="tab-pane active show">
-            <div class="row">
-                {{#each products}}
-                <div class="col-6 col-sm-4 col-lg-3 mb-3 card-wrapper" value="{{ type }}">
-                    <div class="card card-product" id="{{ _id }}">
-                        <div class="card-body">
-                            <div class="img-wrap">
-                                <img class="card-img-top cover" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
-                            </div>
-                            <h4 class="card-title">{{ title }}</h4>
-                            {{#each regions}}
-                                <p class="card-text">{{ title }}</p>
-                            {{/each}}
-                        </div>
-                        <div class="card-footer text-center">
-                            <a class="btn btn-outline-primary card-link" data-toggle="modal" data-target="#descriptionOfObj" value="{{ description }}">Подробнее</a>
-                        </div>
+    {{#if isInRoom}}
+        <div class="row" style="height: 90vh;">
+            <div class="col-3" style="background-color: #d9d9d9;">
+                <div class="text-center">Игроки:</div><hr>
+                <ul class="list-group players-list list-group-numbered">
+                </ul>
+                <hr>
+                <div class="text-center">Комната:</div><hr>
+                <div class="row g-3 align-items-center roomcode-block">
+                    <div class="col-4 px-0">
+                        <label for="roomCode" class="col-form-label">Код комнаты:</label>
+                    </div>
+                    <div class="col-7 px-1">
+                        <input type="password" id="roomCode" class="form-control form-control-sm" aria-describedby="passwordHelpInline" value="{{roomCode}}" readonly>
+                    </div>
+                    <div class="col-1 px-0" title="Скрыть / показать код">
+                        <button type="button" id="toggleRoomCode" class="btn btn-sm btn-warning"><i class="fa fa-unlock-alt" aria-hidden="true"></i></button>
                     </div>
                 </div>
-                {{/each}}
-            </div>
-        </div>
-        <div id="partners" class="tab-pane fade">
-            <div class="row">
-                {{#each partners}}
-                <div class="col-6 col-sm-4 col-lg-3 mb-3">
-                    <div class="card card-partner" id="{{ _id }}">
-                        <div class="img-wrap">
-                            <img class="card-img-top cover" src="data:image/{{ img.contentType }};base64, {{ img.dataStr }}" onerror="this.src = 'images/default.png'; this.onerror = null;"> 
-                        </div>
-                        <div class="card-body">
-                            <h4 class="card-title">{{ title }}</h4>
-                            <p class="card-text">{{ description }}</p>
-                        </div>
+                <div class="row g-3 align-items-center fieldsize-block">
+                    <div class="col-9 px-0">
+                        <label for="fieldSize" class="col-form-label">Размер поля:</label>
+                    </div>
+                    <div class="col-3 px-1">
+                        <input type="number" id="fieldSize" class="form-control form-control-sm changeable-field" {{#unless isPlayerHost}}readonly{{/unless}}>
                     </div>
                 </div>
-                {{/each}}
-            </div> 
+                <div class="row g-3 align-items-center bombscount-block">
+                    <div class="col-9 px-0">
+                        <label for="bombsCount" class="col-form-label">Количество бомб:</label>
+                    </div>
+                    <div class="col-3 px-1">
+                        <input type="number" id="bombsCount" class="form-control form-control-sm changeable-field" {{#unless isPlayerHost}}readonly{{/unless}}>
+                    </div>
+                </div>
+                <div class="row g-3 align-items-center wingoal-block">
+                    <div class="col-9 px-0">
+                        <label for="winGoal" class="col-form-label">Количество бомб для победы:</label>
+                    </div>
+                    <div class="col-3 px-1">
+                        <input type="number" id="winGoal" class="form-control form-control-sm changeable-field" {{#unless isPlayerHost}}readonly{{/unless}}>
+                    </div>
+                </div>
+                <div class="row g-3 align-items-center flags-block">
+                    <div class="col-9 px-0">
+                        <label for="flags" class="col-form-label">Количество флажков:</label>
+                    </div>
+                    <div class="col-3 px-1">
+                        <input type="number" id="flags" class="form-control form-control-sm changeable-field" {{#unless isPlayerHost}}readonly{{/unless}}>
+                    </div>
+                </div>
+                <hr>
+                {{#if isPlayerHost}}
+                <div class="row g-3 align-items-center roomsets-block">
+                    <div class="col-6 px-1">
+                        <button type="button" id="deleteRoom" class="btn btn-sm btn-danger w-100">Удалить комнату</button>
+                    </div>
+                    <div class="col-6 px-1">
+                        <button type="button" id="startGame" class="btn btn-sm btn-primary w-100 d-none">Начать игру</button>
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+            <div class="col-9">
+                <div class="status-players text-center mt-2"  {{#if isPlayerHost}}data-host="1"{{/if}}>
+                    <span class="badge bg-info text-dark" style="width:80%;height:30px;padding-top:10px;">Ожидание других игроков...</span>
+                </div>
+                <div class="row fields-block">
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-<!-- Modals -->
-<!-- Показать подробное описание: -->
-<div class="modal fade" id="descriptionOfObj" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Описание</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p id="descriptionText"></p>
-            </div>
+        
+    {{else}}
+        <div class="" style="padding-left:10rem;padding-right:10rem;padding-top:10rem;">
+            <form action="room_login" method="post">
+                <div class="form-group">
+                    <label for="roomCode">Код комнаты</label>
+                    <input type="text" name="roomCode" class="form-control form-control-sm" id="roomCode" aria-describedby="roomCode" placeholder="Напишите код комнаты">
+                    <small id="roomCodeHelp" class="form-text text-muted">Оставьте поле пустым, чтобы создать комнату.</small>
+                </div>
+                <div class="form-group">
+                    <label for="playerName">Имя игрока</label>
+                    <input type="text" name="playerName" class="form-control form-control-sm" id="playerName" aria-describedby="playerName" placeholder="Напишите своё имя" required>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary mt-1">Поехали</button>
+            </form>
         </div>
-    </div>
-</div>
-<!-- Показать описание ресторана: -->
-<div class="modal fade" id="showRestaurantModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Ресторан</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p id="title_restaurant_modal"></p>
-                <p id="description_restaurant_modal"></p>
-            </div>
-        </div>
-    </div>
+    {{/if}}
 </div>
 
 
+{{#if isInRoom}}
+    <script type="text/javascript">
 
-<script src="/js/jquery-3.5.1.js"></script>
-<script type="text/javascript">
-    let myMap = null;
-    let choosenCard = null;
+        $(document).bind("contextmenu",function(e){
+            return false;
+        });
 
-    function startYandex(url) {
-        filterObjects(url);
+        $(document).ready(() => {
+            let waitingPlayersStatus = 1;
+            let waitingGameStatus = 1;
+            let gameCycleStatus = 0;
+            let movePlayerStatus = -1;
 
-        ymaps.ready(init);
-        function init() {
-            let dataMarks = null;
-
-            myMap = new ymaps.Map("map", {
-                center: [64.091, 81.822],
-                zoom: 3,
-                controls: ['smallMapDefaultSet']
-            }, {
-                restrictMapArea: [
-                    [85, -179],
-                    [-65, 179]
-                ]
-            });
-
-            let circlePointer = new ymaps.Circle([
-                [55.755, 37.619], // Координаты центра круга
-                100 // Радиус круга в метрах
-            ], {}, {
-                draggable: false,
-                fillColor: "#FF5240",
-                strokeColor: "#000000",
-                fillOpacity: 0.3,
-                strokeOpacity: 0.5,
-                strokeWidth: 2
-            });
-
-            const cards = document.getElementsByClassName("card");
-            for (let i=0; i<cards.length; i++) {
-                cards[i].onclick = function (e) {
-                    if (dataMarks != null) {
-                        let coords = null;
-                        for (let j=0; j<dataMarks.features.length; j++) {
-                            const id = dataMarks.features[j].id_glob;
-                            if (id == choosenCard) {
-                                coords = dataMarks.features[j].geometry.coordinates;
-                                myMap.setCenter (coords, 14);
-                            }
-                        }
-                        if (coords != null) {
-                            circlePointer.geometry._radius = Math.pow(1.9, 9);
-                            circlePointer.geometry._coordinates = coords;
-                            myMap.setCenter (coords, 14);
-                            myMap.geoObjects.add(circlePointer);
-                            isCirclePointer = true;
-                        }
-                        else {
-                            myMap.setCenter ([64.091, 81.822], 3);
-                            myMap.geoObjects.remove(circlePointer);
-                            isCirclePointer = false;
-                        }
-                    }
-                }
-            }
-
-            const tooglePartnersOnMap = document.getElementById("showPartnersOnMap");
-            tooglePartnersOnMap.onclick = function(e) {
-                if (e.target.id != "toggler" && e.target.id != "toggler_label" && e.target.id !="showPartnersOnMap") {
-                    let elem = e.target.parentElement.parentElement
-                    if (! elem.classList.contains("off")) {
-                        for (let i=0; i<geoObjectPartners.length; i++) {
-                            myMap.geoObjects.remove(geoObjectPartners[i]);
-                        }
-                    } else {
-                        for (let i=0; i<geoObjectPartners.length; i++) {
-                            myMap.geoObjects.add(geoObjectPartners[i]);
-                        }
-                    }
-                }
-            }
-
-            let isCirclePointer = false;
-            myMap.events.add('boundschange', function(e) {
-                if (isCirclePointer) {
-                    myMap.geoObjects.remove(circlePointer);
-                    circlePointer.geometry._radius = Math.pow(1.9, (23-e.get('newZoom')));
-                    myMap.geoObjects.add(circlePointer);
-                }
-            });
-
-            let geoObjectPartners = [];
-            function ColorAndPartnerRegs(data) {
-                ymaps.borders.load('RU', {
-                lang: "ru",
-                quality: 2
-                }).then(function (geojson) {
-                    for (let i=0; i<geojson.features.length; i++) {
-                        // Покраска регионов, входящие в какие-лтбо кухни
-                        if (data[geojson.features[i].properties.iso3166]) {
-                            let properties= geojson.features[i].properties;
-                            properties.hintContent = '';
-
-                            let geoObject = new ymaps.GeoObject ({
-                                geometry: geojson.features[i].geometry,
-                                properties: properties,
-                            }, {
-                                fillColor: data[geojson.features[i].properties.iso3166],
-                                fillOpacity: 0.25,
-                                strokeColor: '#000000',
-                                strokeOpacity: 0.4
+            function WaitingPlayers() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_players_in_room",
+                    async: true,
+                    success: function(data) {
+                        if (data.players && data.players.length > 0) {
+                            let htmlStr = "";
+                            data.players.forEach(player => {
+                                htmlStr += `
+                                    <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-start player-info ${player.current ? 'active' : ''}" data-id="${player.id}">
+                                        <div class="player-name text-light">${player.name}</div>
+                                        <div>
+                                            <span class="player-flags badge bg-primary rounded-pill" title="количество флажков">0</span>
+                                            <span class="player-bombs badge bg-danger rounded-pill" title="кол-во взорванных бомб на территории">0</span>
+                                        </div>
+                                    </li>
+                                `;
                             });
-                            myMap.geoObjects.add(geoObject);
+                            $('.players-list').html(htmlStr);
                         }
-                        // Штриховка регионов участников
-                        const decodedJson = decodeURIComponent("{{{dataRegPartners}}}");
-                        const jsonObj = JSON.parse(decodedJson);
-                        if (jsonObj) {
-                            for (let k=0; k<jsonObj.length; k++) {
-                                if (geojson.features[i].properties.iso3166 == jsonObj[k]) {
-                                    let properties= geojson.features[i].properties;
-                                    properties.hintContent = '';
-                                    let geoObject = new ymaps.GeoObject ({
-                                        geometry: geojson.features[i].geometry,
-                                        properties: properties,
-                                    }, {
-                                        fillImageHref: "images/hatching.png",
-                                        fillMethod: 'tile',
-                                        fillColor: '#ffffff',
-                                        fillOpacity: 0.3
-                                    });
-                                    if (! tooglePartnersOnMap.firstElementChild.classList.contains("off")) {
-                                        myMap.geoObjects.add(geoObject);
-                                    }
-                                    geoObjectPartners.push(geoObject)
-                                }
+                        if (data.status && data.status == "ok") {
+                            if ($('.status-players').attr('data-host') == '1') {
+                                $('.status-players > span').text('');
+                            } else {
+                                $('.status-players > span').text('Ожидание старта игры от хоста...');
                             }
+                            $('#startGame').removeClass('d-none');
+                            waitingPlayersStatus = 0;
                         }
+                    },
+                    error: function(err) {},
+                    complete: function() {
+                        if (waitingPlayersStatus == 1) {
+                            setTimeout(() => {WaitingPlayers();}, 1000);
+                        }
+                    },
+                });
+            } WaitingPlayers();
+
+            function WaitingGame() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_room_status",
+                    async: true,
+                    success: function(data) {
+                        if (data.data) {
+                            $('#fieldSize').val(data.data.fieldSize);
+                            $('#bombsCount').val(data.data.bombsCount);
+                            $('#winGoal').val(data.data.winGoal);
+                            $('#flags').val(data.data.flags);
+                        }
+                        if (data.status && data.status == "ok") {
+                            $('.status-players > span').text('');
+                            waitingGameStatus = 0;
+                            gameCycleStatus = 1;
+                            GameCycle();
+                        }
+                        if (data.status && data.status == "err") {
+                            document.location.reload(false);
+                        }
+                    },
+                    error: function(err) {},
+                    complete: function() {
+                        if (waitingGameStatus == 1) {
+                            setTimeout(() => {WaitingGame();}, 3000);
+                        }
+                    },
+                });
+            } WaitingGame();
+
+            function RenderField(fields, playerInd) {
+                let htmlStr = `
+                    <div class="col-6" data-your-field="1">
+                        <div class="text-center">Ваше поле</div>
+                        <hr>
+                        <div class="fields-container">
+                `;
+                let field = fields[playerInd].watchField;
+                for (let i = 0; i < field.length; i++) {
+                    htmlStr += `
+                        <div class="field-row">
+                    `;
+                    for (let j = 0; j < field[i].length; j++) {
+                        let val = ""; let classCell = "";
+                        if (field[i][j] == -3) {val = '-'; classCell = "white";}
+                        if (field[i][j] == -2) {val = 'x'; classCell = "red";}
+                        if (field[i][j] == -1) {val = 'f'; classCell = "blue";}
+                        if (field[i][j] > 0) {val = `${field[i][j]}`; classCell = "white";}
+                        htmlStr += `
+                            <div class="cell-container ${classCell}" data-cell="${i}_${j}"><div class="cell-element text-uppercase text-center">${val}</div></div>
+                        `;
                     }
+                    htmlStr += `
+                        </div>
+                    `;
+                }
+                htmlStr += `
+                        </div>
+                    </div>
+                `;
+                for (let k = 0; k < fields.length; k++) {
+                    $($('.players-list').find(`.player-flags`)[k]).text(fields[k].usedFlags);
+                    $($('.players-list').find(`.player-bombs`)[k]).text(fields[k].explodedBombs);
+
+                    if (k != playerInd) {
+                        htmlStr += `
+                            <div class="col-6" data-your-field="0">
+                                <div class="text-center">Поле противника</div>
+                                <hr>
+                                <div class="fields-container">
+                        `;
+                        field = fields[k].watchField;
+                        for (let i = 0; i < field.length; i++) {
+                            htmlStr += `
+                                <div class="field-row">
+                            `;
+                            for (let j = 0; j < field[i].length; j++) {
+                                let val = ""; let classCell = "";
+                                if (field[i][j] == -3) {val = '-'; classCell = "white";}
+                                if (field[i][j] == -2) {val = 'x'; classCell = "red";}
+                                if (field[i][j] == -1) {val = 'f'; classCell = "blue";}
+                                if (field[i][j] > 0) {val = `${field[i][j]}`; classCell = "white";}
+                                htmlStr += `
+                                    <div class="cell-container ${classCell}" data-cell="${i}_${j}"><div class="cell-element text-uppercase text-center">${val}</div></div>
+                                `;
+                            }
+                            htmlStr += `
+                                </div>
+                            `;
+                        }
+                        htmlStr += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                $('.fields-block').html(htmlStr);
+            }
+
+            function GameCycle() {
+                // $('.status-players > span').text('');
+                $('#startGame').addClass('d-none');
+                $.ajax({
+                    type: "GET",
+                    url: "/get_game",
+                    async: true,
+                    success: function(data) {
+                        if (data.status == "err") {
+                            document.location.reload(false);
+                        }
+                        if (data.status == "ok") {
+                            if (movePlayerStatus != data.playerMove) {
+                                movePlayerStatus = data.playerMove;
+                                $('.status-players > span').text(movePlayerStatus != 1 ? "Ожидайте... Ходит ваш оппонент." : "Ваш ход. :)");
+                            }
+                            RenderField(data.fields, data.playerInd);
+                        }
+                        console.log(data.loseId)
+                        if (data.loseId) {
+                            gameCycleStatus = 0;
+                            let name = $('.players-list').find(`.player-info[data-id="${data.loseId}"]`).find('.player-name').text();
+                            alert(`Конец игры. Проиграл игрок "${name}"`);
+                        }
+                    },
+                    error: function(err) {},
+                    complete: function() {
+                        if (gameCycleStatus == 1) {
+                            setTimeout(() => {GameCycle();}, 1000);
+                        }
+                    },
                 });
             }
 
-            objectManagerMarks = new ymaps.ObjectManager({
-                clusterize: true,
-                gridSize: 32,
-                clusterDisableClickZoom: true
+            // ------------------------------------------------------------------
+            
+            $('#toggleRoomCode').on('click', (e) => {
+                let isTypePass = $('#roomCode').attr('type') == "password";
+                $('#roomCode').attr('type', isTypePass ? "text" : "password");
             });
-            objectManagerMarks.clusters.options.set('preset', 'islands#greenClusterIcons');
-            myMap.geoObjects.add(objectManagerMarks);
 
-            $.ajax({
-                url: `/data/dynamic/dataMap_${url}.json`
-            }).done(function(data) {
-                dataMarks = data;
-                objectManagerMarks.add(dataMarks);
+            $('.changeable-field').on('change', (e) => {
+                let id = $(e.currentTarget).attr('id');
+                let val = $(e.currentTarget).val();
+                // post ajax
+                $.ajax({
+                    type: "POST",
+                    url: "/set_room_vars",
+                    data: {id, val},
+                    async: true,
+                    success: function(data) {},
+                    error: function(err) {},
+                    complete: function() {},
+                });
             });
-            $.ajax({
-                url: `/data/dynamic/dataRegColors_${url}.json`
-            }).done(function(data) {
-                ColorAndPartnerRegs(data);
+
+            $('#deleteRoom').on('click', (e) => {
+                $.ajax({
+                    type: "POST",
+                    url: "/delete_room",
+                    data: {},
+                    async: true,
+                    success: function(data) {},
+                    error: function(err) {},
+                    complete: function() {
+                        document.location.reload(false);
+                    },
+                });
             });
-        }
-    }
-</script>
-<script>
-function filterObjects(type) {
-    const $cards = $('.card-wrapper');
-    $cards.each(function(index) {
-        if ($(this).attr("value") != type && type != "all") {
-            $(this).removeClass("d-flex");
-            $(this).addClass("d-none");
-        } else {
-            $(this).removeClass("d-none");
-            $(this).addClass("d-flex");
-        }
-    });
-}
 
-function chooseCardHandler(obj, choosen) {
-    try {
-        if (choosen != obj.attr("id")) {choosen = obj.attr("id");}
-        else {choosen = null;}
-    } catch (e) {
-        choosen = null;
-    }
-    const $cards = $('.card-product');
-    $cards.each(function(index) {
-        if ($(this).attr("id") == choosen) {
-            $(this).addClass("card-choosen");
-        } else {
-            $(this).removeClass("card-choosen");
-        }
-    });
-    return choosen;
-}
+            $('#startGame').on('click', (e) => {
+                $.ajax({
+                    type: "POST",
+                    url: "/start_game",
+                    data: {},
+                    async: true,
+                    success: function(data) {
+                        if (data == "ok") {
+                            $('.changeable-field').attr('readonly', 'readonly');
+                            $('#startGame').addClass('d-none');
+                        }
+                    },
+                    error: function(err) {},
+                    complete: function() {},
+                });
+            });
 
+            $('.fields-block').on('mouseover', '.cell-container', (e) => {
+                let cell = $(e.currentTarget).attr('data-cell');
+                $('.fields-block').find(`.cell-container`).removeClass('c-hover');
+                $('.fields-block').find(`.cell-container[data-cell=${cell}]`).addClass('c-hover');
+            });
 
-$(document).ready(function() {
-    choosenCard = chooseCardHandler(null, choosenCard);
-    startYandex("all");
-    $('#productType').click(function() {
-        if (myMap) {myMap.destroy();}
-        choosenCard = chooseCardHandler(null, choosenCard);
-        startYandex("product");
-    });
-    $('#dishType').click(function() {
-        if (myMap) {myMap.destroy();}
-        choosenCard = chooseCardHandler(null, choosenCard);
-        startYandex("dish");
-    });
-    $('#wildPlantType').click(function() {
-        if (myMap) {myMap.destroy();}
-        choosenCard = chooseCardHandler(null, choosenCard);
-        startYandex("wild_plant");
-    });
-    $('#fishType').click(function() {
-        if (myMap) {myMap.destroy();}
-        choosenCard = chooseCardHandler(null, choosenCard);
-        startYandex("fish");
-    });
-    $('#allType').click(function() {
-        if (myMap) {myMap.destroy();}
-        choosenCard = chooseCardHandler(null, choosenCard);
-        startYandex("all");
-    });
-    // Выбор карточки из списка "объекты на карте"
-    $('.card-body').click(function () {
-        let card = $(this).closest('.card');
-        choosenCard = chooseCardHandler(card, choosenCard);
-    });
-    // Наводка на картинку в карточке
-    $('.card-body').hover(function() {
-        let card = $(this).closest('.card');
-        card.addClass("card-hoverable");
-    }, function() {
-        let card = $(this).closest('.card');
-        card.removeClass("card-hoverable");
-    });
-    // Нажатие на кнопку "Подробнее" в карточке
-    $('.card-link').click(function() {
-        $('#descriptionText').text( $(this).attr("value") );
-    });
-    // Открытие панели с информацией о ресторане
-});
-</script>
+            $('.fields-block').on('mousedown', '.cell-container', (e) => {
+                if (movePlayerStatus != 1) {return;}
+                let cellId = $(e.currentTarget).attr('data-cell'); let mode = -1;
+                switch (e.which) {
+                    case 1:
+                        mode = 0; // open cell
+                        break;
+                    case 3:
+                        let parent = $(e.currentTarget).parent().parent().parent();
+                        if ($(parent).attr('data-your-field') == '1') {
+                            mode = 1; // set flag
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                if (mode < 0) {return;}
+                $.ajax({
+                    type: "POST",
+                    url: "/change_cell",
+                    data: {id: cellId, mode},
+                    async: true,
+                    success: function(data) {
+                        if (data.status == "ok") {}
+                    },
+                    error: function(err) {},
+                    complete: function() {},
+                });
+            });
+
+        });
+    </script>
+{{/if}}
