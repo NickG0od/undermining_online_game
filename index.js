@@ -37,6 +37,11 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(cors(corsOptions));
 
+app.use(function (req, res, next) {
+    res.set("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';");
+    next();
+});
+
 app.use(mainRoute)
 
 async function start() {
