@@ -2,10 +2,10 @@
   "name": "undermining_online",
   "version": "1.0.0",
   "description": "Interesting simple game",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node app",
-    "dev": "nodemon app"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "FreeQux",
